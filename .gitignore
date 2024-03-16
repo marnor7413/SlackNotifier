@@ -478,3 +478,4 @@ $RECYCLE.BIN/
 
 # Secrets file
 secrets.json
+googleCredentials.json
