@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MailService.Application\MailService.Application\MailService.Application.csproj" />
-    <ProjectReference Include="..\MailService.Infrastructure\MailService.Infrastructure\MailService.Infrastructure.csproj" />
+    <ProjectReference Include="..\SN.Application\SN.Application\SN.Application.csproj" />
+    <ProjectReference Include="..\SN.Infrastructure\SN.Infrastructure\SN.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
