@@ -3,6 +3,7 @@ using MailService.Application.Services;
 using MailService.ConsoleApp.Configuration;
 using MailService.ConsoleApp.Extensions;
 using MailService.Infrastructure.EmailServices;
+using MailService.Infrastructure.Factories;
 using MailService.Infrastructure.SlackServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,6 +75,7 @@ class Program
 
                 services.AddScoped<IMessageForwarderService, MessageForwarderService>();
                 services.AddScoped<IGmailApiService, GmailApiService>();
+                services.AddScoped<IGmailClientFactory, GmailClientFactory>();
                 services.AddScoped<ISlackService, SlackService>();
             });
 

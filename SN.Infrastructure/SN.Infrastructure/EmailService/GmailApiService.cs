@@ -24,12 +24,11 @@ public class GmailApiService : IGmailApiService
     private const string MimeTypeMultiPartAlternative = "multipart/alternative";
     private const string MimeTypeIphonePagesFileformat = "application/x-iwork-pages-sffpages";
     private const string MimeTypeImageJpeg = "image/jpeg";
-
     private string base64String = string.Empty;
 
-    public GmailApiService()
+    public GmailApiService(IGmailClientFactory gmailClientFactory)
     {
-        service = GmailClientFactory.CreateGmailClient();
+        service = gmailClientFactory.CreateGmailClient();
     }
 
     public async Task<List<EmailInfo>> CheckForEmails()
