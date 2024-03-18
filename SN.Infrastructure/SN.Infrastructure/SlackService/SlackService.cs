@@ -1,7 +1,7 @@
 ﻿using MailService.ConsoleApp.Configuration;
 using MailService.Infrastructure.EmailService;
 using Microsoft.Extensions.Options;
-using SlackAPI;
+using SN.Infrastructure.SlackService;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -24,61 +24,82 @@ public class SlackService : ISlackService
         var client = _httpClientFactory.CreateClient(nameof(SlackService));
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer { _options.Token }");
 
-        //implementera detta istället: https://api.slack.com/methods/chat.postMessage
-
         foreach (var message in messages)
         {
-            var text = new StringBuilder();
-            text.AppendLine($"*Från: {FormatEmailLinkInFromText(message.From)}*");
-            text.AppendLine($"*Ämne: {message.Subject}*");
-            text.AppendLine(message.PlainTextBody);
-
-            var hej = new JsonObject
+            var text = ComposeMessage(message);
+            var textMessageRequestBody = CreateStringContentObjectForJsonObject(text);
+            var sendMessageResponse = await client.PostAsync(SlackApiEndpoints.PostMessage, textMessageRequestBody);
+            var sendMessageResponseInfo = await ExtractResponseDataFromHttpResponseMessage(sendMessageResponse);
+            var sendMessageResult = sendMessageResponse.IsSuccessStatusCode switch
             {
-                { "channel", _options.Destination },
-                { "text", text.ToString() }
+                true => "Message sent successfully.",
+                false => $"Error occured when sending message. Status code: {sendMessageResponse.StatusCode}"
             };
-            var requestBody = new StringContent(hej.ToString(), Encoding.UTF8);
-            requestBody.Headers.ContentType.MediaType = "application/json";
-            var response = await client.PostAsync("/api/chat.postMessage", requestBody);
+            Console.WriteLine("Fel uppstod vid försök att skicka meddelande till Slack");
 
-
-            var attachments = new List<Attachment>();
-            attachments.AddRange(GetJpegAttachments(message.JpegAttachments));
-
-            if (!response.IsSuccessStatusCode)
+            foreach (var item in message.JpegAttachments)
             {
-                Console.WriteLine("Meddelande ej skickat till Slack");
-            }
+                using var formData = new MultipartFormDataContent();
+                using var fileContent = new ByteArrayContent(item.ToByteArray());
+                formData.Add(fileContent, "file", item.FileName);
 
-            //Upload the file to Slack
-            //foreach (var item in message.JpegAttachments)
-            //{
-            //    await slackClient.UploadFileAsync(
-            //            item.ToByteArray(),
-            //            item.FileName,
-            //            new[] { "CJJTR812L" },
-            //            item.FileName,
-            //            item.Description,
-            //            fileType: "image/jpeg");
-            //}
+                foreach (var parameter in CreateDefaultParametersForFileUpload(sendMessageResponseInfo, item))
+                {
+                    formData.Add(new StringContent(parameter.Value), parameter.Key);
+                }
+
+                var uploadFileResponse = await client.PostAsync(SlackApiEndpoints.UploadFile, formData);
+                var uploadFileResponseInfo = await ExtractResponseDataFromHttpResponseMessage(uploadFileResponse);
+                var uploadResult = uploadFileResponse.IsSuccessStatusCode switch
+                {
+                    true => $"File {item.FileName} uploaded successfully.",
+                    false => $"Error uploading file. Status code: {uploadFileResponse.StatusCode}"
+                };
+                Console.WriteLine(uploadResult);
+            }
         }
     }
 
-    private IEnumerable<Attachment> GetJpegAttachments(List<JpegAttachment> jpegAttachments)
+    private async Task<dynamic> ExtractResponseDataFromHttpResponseMessage(HttpResponseMessage uploadFileResponse)
     {
-        var result = new List<Attachment>();
-        foreach (var item in jpegAttachments)
-        {
-            result.Add(new Attachment()
-            {
-                title = item.FileName,
-                text = item.Description,
-                image_url = $"data:image/jpeg;base64,{item.Data}"
-            });
-        }
+        return Newtonsoft.Json.JsonConvert
+            .DeserializeObject<dynamic>(await uploadFileResponse.Content.ReadAsStringAsync());
+    }
 
-        return result;
+    private StringContent CreateStringContentObjectForJsonObject(JsonObject text)
+    {
+        var requestBody = new StringContent(text.ToString(), Encoding.UTF8);
+        requestBody.Headers.ContentType.MediaType = "application/json";
+        return requestBody;
+    }
+
+    private KeyValuePair<string, string>[] CreateDefaultParametersForFileUpload(dynamic responseObject, JpegAttachment item)
+    {
+        return new[]
+                        {
+                        new KeyValuePair<string, string>("filename", item.FileName),
+                        new KeyValuePair<string, string>("filetype", "auto"),
+                        new KeyValuePair<string, string>("channels", _options.Destination),
+                        new KeyValuePair<string, string>("initial_comment", item.FileName),
+                        new KeyValuePair<string, string>("title", "Bifogad fil"),
+                        new KeyValuePair<string, string>("thread_ts", (string)responseObject.ts)
+                };
+    }
+
+    private JsonObject ComposeMessage(EmailInfo message)
+    {
+        var text = new StringBuilder();
+        text.AppendLine($"*Från: {FormatEmailLinkInFromText(message.From)}*");
+        text.AppendLine($"*Ämne: {message.Subject}*");
+        text.AppendLine(message.PlainTextBody);
+        
+        var json = new JsonObject
+        {
+            { "channel", _options.Destination },
+            { "text", text.ToString() }
+        };
+        
+        return json;
     }
 
     private string FormatEmailLinkInFromText(string text)
