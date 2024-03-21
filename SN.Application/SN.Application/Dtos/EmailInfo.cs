@@ -2,23 +2,19 @@
 
 namespace MailService.Infrastructure.EmailService;
 
-public class EmailInfo
+public record EmailInfo(int Id, string Date, string From, string Subject, string PlainTextBody, string HtmlBody)
 {
-    public int Id { get; set; }
-    public string Date { get; set; }
-    public string From { get; set; }
-    public string Subject { get; set; }
-    public string PlainTextBody { get; set; }
-    public string HtmlBody { get; set; }
-    public List<JpegAttachment> JpegAttachments { get; init; } = new List<JpegAttachment>();
+    public int Id { get; set; } = Id;
+    public string Date { get; set; } = Date;
+    public string From { get; set; } = From;
+    public string Subject { get; set; } = Subject;
+    public string PlainTextBody { get; set; } = PlainTextBody;
+    public string HtmlBody { get; set; } = HtmlBody;
+    public List<FileAttachment> FileAttachments { get; init; } = new List<FileAttachment>();
 }
 
-public class JpegAttachment
+public record FileAttachment(string FileName, string fileType, string Description, string Data)
 {
-    public string FileName { get; set; }
-    public string Description { get; set; }
-    public string Data { get; set; }
-
     public byte[] ToUTF8ByteArray()
     {
         var base64String = Data.Replace("-", "+").Replace("_", "/");//.Replace(" ", "=");

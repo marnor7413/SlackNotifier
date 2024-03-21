@@ -1,4 +1,4 @@
-﻿namespace SN.Infrastructure.SlackService;
+﻿namespace SN.Infrastructure.Services.Slack;
 
 public static class SlackApiEndpoints
 {

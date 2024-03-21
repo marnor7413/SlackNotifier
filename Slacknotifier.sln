@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.ConsoleApp", "SN.Console
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.Application", "SN.Application\SN.Application\SN.Application.csproj", "{5900DAD9-8B41-498F-8377-AC1E44F18568}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.Domain", "SN.Domain\SN.Domain\SN.Domain.csproj", "{C3C94591-4D1A-49E7-81C6-95B98E727B05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.Core", "SN.Core\SN.Core\SN.Core.csproj", "{C3C94591-4D1A-49E7-81C6-95B98E727B05}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.Infrastructure", "SN.Infrastructure\SN.Infrastructure\SN.Infrastructure.csproj", "{DBE8EF8C-9481-4604-87DA-183F22161BC0}"
 EndProject
