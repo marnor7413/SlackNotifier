@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using SN.Infrastructure.Services.Gmail;
+using SN.Infrastructure.Services.Slack;
 
 namespace MailService;
 
