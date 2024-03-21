@@ -4,8 +4,10 @@ using MailService.Infrastructure.EmailService;
 using MailService.Infrastructure.Extensions;
 using System.Text;
 using MailService.Infrastructure.Factories;
+using MailService.Infrastructure.EmailServices;
+using SN.Core.ValueObjects;
 
-namespace MailService.Infrastructure.EmailServices;
+namespace SN.Infrastructure.Services.Gmail;
 
 public class GmailApiService : IGmailApiService
 {
@@ -14,16 +16,10 @@ public class GmailApiService : IGmailApiService
     private const string AuthenticatedUser = "me";
     private const string FilterUnreadEmailsOnly = "is:unread";
     private const string InboxFolder = "INBOX";
-    
+
     private const string HeaderEncodingValueForBase64 = "base64";
     private const string HeaderEncodingValueContentTransferEncoding = "Content-Transfer-Encoding";
-    
-    private const string MimeTypeText = "text/plain";
-    private const string MimeTypeHtml = "text/html";
-    private const string MimeTypeMultiPartMixed = "multipart/mixed";
-    private const string MimeTypeMultiPartAlternative = "multipart/alternative";
-    private const string MimeTypeIphonePagesFileformat = "application/x-iwork-pages-sffpages";
-    private const string MimeTypeImageJpeg = "image/jpeg";
+
     private string base64String = string.Empty;
 
     public GmailApiService(IGmailClientFactory gmailClientFactory)
@@ -38,10 +34,10 @@ public class GmailApiService : IGmailApiService
         emailListRequest.IncludeSpamTrash = false;
         emailListRequest.Q = FilterUnreadEmailsOnly;
         var emails = new List<EmailInfo>();
-                
+
         int counter = 1;
         var emailListResponse = await emailListRequest.ExecuteAsync();
-        var threads = emailListResponse.Messages?.GroupBy(x => x.ThreadId) ?? Enumerable.Empty<IGrouping<string,Message>>();
+        var threads = emailListResponse.Messages?.GroupBy(x => x.ThreadId) ?? Enumerable.Empty<IGrouping<string, Message>>();
 
         foreach (var thread in threads)
         {
@@ -81,15 +77,13 @@ public class GmailApiService : IGmailApiService
         if (message != null)
         {
             //await ToggleMessageToRead(emailId); //TODO: uncomment this line
-            var email = new EmailInfo
-            {
-                Id = counter,
-                Date = message.Payload.Headers.Single(x => x.Name == "Date").Value,
-                From = message.Payload.Headers.Single(x => x.Name == "From").Value,
-                Subject = message.Payload.Headers.Single(x => x.Name == "Subject").Value,
-                PlainTextBody = string.Empty,
-                HtmlBody = string.Empty,
-            };
+            var email = new EmailInfo(
+                counter, 
+                message.Payload.Headers.Single(x => x.Name == "Date").Value, 
+                message.Payload.Headers.Single(x => x.Name == "From").Value, 
+                message.Payload.Headers.Single(x => x.Name == "Subject").Value, 
+                string.Empty, 
+                string.Empty);
 
             if (email.From.StartsWith("Google") || email.From.StartsWith("The Gmail"))
             {
@@ -99,7 +93,7 @@ public class GmailApiService : IGmailApiService
 
                 return null;
             }
-            
+
             if (message.Payload.Parts == null && message.Payload.Body != null)
             {
                 email.PlainTextBody = GetText(message.Payload);
@@ -108,79 +102,102 @@ public class GmailApiService : IGmailApiService
             else if (IsAPlainMessage(message))
             {
                 email.PlainTextBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeTypeText));
+                    .SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
                 email.HtmlBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeTypeHtml));
+                    .SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
             }
             else if (IsMessageWithStupidIphoneAttachment(message))
             {
                 email.PlainTextBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeTypeMultiPartAlternative)
-                    .Parts.SingleOrDefault(x => x.MimeType == MimeTypeText));
+                    .SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name)
+                    .Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
                 email.HtmlBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeTypeMultiPartAlternative)
-                    .Parts.SingleOrDefault(x => x.MimeType == MimeTypeHtml));
+                    .SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name)
+                    .Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
             }
             else if (IsMultiPartAlternativeMessage(message))
             {
                 email.PlainTextBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeTypeText));
+                    .SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
                 email.HtmlBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeTypeHtml));
+                    .SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
             }
             else if (IsMultiPartMixed(message)) // text + image attachment
             {
-                var textObject = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeTypeMultiPartAlternative);
-                var image = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeTypeImageJpeg);
-
-                var attId = image.Body.AttachmentId;
-                var attachPart = await service.Users.Messages.Attachments.Get(AuthenticatedUser, message.Id, attId).ExecuteAsync();
-
-                var jpegAttachment = new JpegAttachment
-                {
-                    FileName = image.Filename,
-                    Description = "",
-                    Data = attachPart.Data
-                };
-        
-                email.JpegAttachments.Add(jpegAttachment);
-                
-                email.PlainTextBody = GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeTypeText));
-                email.HtmlBody = GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeTypeHtml));
+                var gmailAttachmentData = GetAttachmentData(message.Payload.Parts);
+                var attachments = await GetAttachments(message.Id, gmailAttachmentData);
+                email.FileAttachments.AddRange(attachments);
+               
+                var textObject = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name);
+                email.PlainTextBody = GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
+                email.HtmlBody = GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
             }
-            
+
             return email;
         }
 
         return null;
     }
 
+    private IEnumerable<MessagePart> GetAttachmentData(IList<MessagePart> parts)
+    {
+        var supportedFileTypes = new List<string>() 
+        { 
+            MimeType.ImageJpeg.Name,
+            MimeType.ApplicationPdf.Name
+        }.AsReadOnly();
+
+        return parts.Where(x => supportedFileTypes.Contains(x.MimeType));
+    }
+
+    private async Task<List<FileAttachment>> GetAttachments(string messageId, IEnumerable<MessagePart> gmailAttachmentData)
+    {
+        var emailAttachments = new List<FileAttachment>();
+        foreach (var item in gmailAttachmentData)
+        {
+
+            var fileType = item.MimeType switch
+            {
+                var compiletimeText when compiletimeText == MimeType.ImageJpeg.Name => FileExtension.Jpeg.Name,
+                var compiletimeText when compiletimeText == MimeType.ApplicationPdf.Name => FileExtension.Pdf.Name,
+                _ => string.Empty
+            };
+            
+            var attId = item.Body.AttachmentId;
+            var attachPart = await service.Users.Messages.Attachments
+                .Get(AuthenticatedUser, messageId, attId)
+                .ExecuteAsync();
+            emailAttachments.Add(new FileAttachment(item.Filename, fileType, "", attachPart.Data));
+        }
+
+        return emailAttachments;
+    }
+
     private bool IsMultiPartMixed(Message message)
     {
-        return message.HasMimeType(MimeTypeMultiPartMixed) &&
-            message.HasSubMimeType(MimeTypeMultiPartAlternative) && 
-            message.HasSubMimeType(MimeTypeImageJpeg);
+        return message.HasMimeType(MimeType.MultiPartMixed.Name) &&
+            message.HasSubMimeType(MimeType.MultiPartAlternative.Name);
     }
 
     private bool IsMultiPartAlternativeMessage(Message message)
     {
-        return message.HasMimeType(MimeTypeMultiPartAlternative) &&
-            message.HasSubMimeType(MimeTypeText) &&
-            message.HasSubMimeType(MimeTypeHtml) &&
+        return message.HasMimeType(MimeType.MultiPartAlternative.Name) &&
+            message.HasSubMimeType(MimeType.Text.Name) &&
+            message.HasSubMimeType(MimeType.Html.Name) &&
             message.Payload.Parts.Count() == 2;
     }
 
     private bool IsMessageWithStupidIphoneAttachment(Message message)
     {
-        return message.HasMimeType(MimeTypeMultiPartMixed) &&
-            message.HasSubMimeType(MimeTypeIphonePagesFileformat);
+        return message.HasMimeType(MimeType.MultiPartMixed.Name) &&
+            message.HasSubMimeType(MimeType.IphonePagesFileformat.Name);
     }
 
     private static bool IsAPlainMessage(Message message)
     {
-        return message.HasMimeType(MimeTypeText) && 
-            message.HasSubMimeType(MimeTypeText) && 
-            message.HasSubMimeType(MimeTypeHtml) &&
+        return message.HasMimeType(MimeType.Text.Name) &&
+            message.HasSubMimeType(MimeType.Text.Name) &&
+            message.HasSubMimeType(MimeType.Text.Name) &&
             message.Payload.Parts.Count() == 2;
     }
 

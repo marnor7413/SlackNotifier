@@ -1,12 +1,12 @@
 ﻿using MailService.ConsoleApp.Configuration;
 using MailService.Infrastructure.EmailService;
+using MailService.Infrastructure.SlackServices;
 using Microsoft.Extensions.Options;
-using SN.Infrastructure.SlackService;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-namespace MailService.Infrastructure.SlackServices;
+namespace SN.Infrastructure.Services.Slack;
 
 public class SlackService : ISlackService
 {
@@ -22,7 +22,7 @@ public class SlackService : ISlackService
     public async Task SendMessage(List<EmailInfo> messages)
     {
         var client = _httpClientFactory.CreateClient(nameof(SlackService));
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer { _options.Token }");
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.Token}");
 
         foreach (var message in messages)
         {
@@ -35,9 +35,9 @@ public class SlackService : ISlackService
                 true => "Message sent successfully.",
                 false => $"Error occured when sending message. Status code: {sendMessageResponse.StatusCode}"
             };
-            Console.WriteLine("Fel uppstod vid försök att skicka meddelande till Slack");
+            Console.WriteLine(sendMessageResult);
 
-            foreach (var item in message.JpegAttachments)
+            foreach (var item in message.FileAttachments)
             {
                 using var formData = new MultipartFormDataContent();
                 using var fileContent = new ByteArrayContent(item.ToByteArray());
@@ -73,17 +73,17 @@ public class SlackService : ISlackService
         return requestBody;
     }
 
-    private KeyValuePair<string, string>[] CreateDefaultParametersForFileUpload(dynamic responseObject, JpegAttachment item)
+    private KeyValuePair<string, string>[] CreateDefaultParametersForFileUpload(dynamic responseObject, FileAttachment item)
     {
         return new[]
-                        {
-                        new KeyValuePair<string, string>("filename", item.FileName),
-                        new KeyValuePair<string, string>("filetype", "auto"),
-                        new KeyValuePair<string, string>("channels", _options.Destination),
-                        new KeyValuePair<string, string>("initial_comment", item.FileName),
-                        new KeyValuePair<string, string>("title", "Bifogad fil"),
-                        new KeyValuePair<string, string>("thread_ts", (string)responseObject.ts)
-                };
+        {
+            new KeyValuePair<string, string>("filename", item.FileName),
+            new KeyValuePair<string, string>("filetype", item.fileType),
+            new KeyValuePair<string, string>("channels", _options.Destination),
+            new KeyValuePair<string, string>("initial_comment", item.FileName),
+            new KeyValuePair<string, string>("title", "Bifogad fil"),
+            new KeyValuePair<string, string>("thread_ts", (string)responseObject.ts)
+        };
     }
 
     private JsonObject ComposeMessage(EmailInfo message)
@@ -92,13 +92,13 @@ public class SlackService : ISlackService
         text.AppendLine($"*Från: {FormatEmailLinkInFromText(message.From)}*");
         text.AppendLine($"*Ämne: {message.Subject}*");
         text.AppendLine(message.PlainTextBody);
-        
+
         var json = new JsonObject
         {
             { "channel", _options.Destination },
             { "text", text.ToString() }
         };
-        
+
         return json;
     }
 
