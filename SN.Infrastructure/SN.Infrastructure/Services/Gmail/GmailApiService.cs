@@ -73,7 +73,6 @@ public class GmailApiService : IGmailApiService
         var message = await emailRequest.ExecuteAsync();
         Console.WriteLine("Message received.");
 
-
         if (message != null)
         {
             //await ToggleMessageToRead(emailId); //TODO: uncomment this line
@@ -94,49 +93,57 @@ public class GmailApiService : IGmailApiService
                 return null;
             }
 
-            if (message.Payload.Parts == null && message.Payload.Body != null)
+            if (message.Payload.Parts is null && message.Payload.Body is not null)
             {
-                email.PlainTextBody = GetText(message.Payload);
-                email.HtmlBody = GetText(message.Payload);
+                email = SetMessage(email, GetText(message.Payload), GetText(message.Payload));
             }
             else if (IsAPlainMessage(message))
             {
-                email.PlainTextBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
-                email.HtmlBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
+                email = SetMessage(email,
+                    GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
+                    GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
             else if (IsMessageWithStupidIphoneAttachment(message))
             {
-                email.PlainTextBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name)
-                    .Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
-                email.HtmlBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name)
-                    .Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
+                email = SetMessage(email,
+                    GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name)
+                        .Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
+                    GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name)
+                        .Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
             else if (IsMultiPartAlternativeMessage(message))
             {
-                email.PlainTextBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
-                email.HtmlBody = GetText(message.Payload.Parts
-                    .SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
+                email = SetMessage(email,
+                    GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
+                    GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
             else if (IsMultiPartMixed(message)) // text + image attachment
             {
-                var gmailAttachmentData = GetAttachmentData(message.Payload.Parts);
-                var attachments = await GetAttachments(message.Id, gmailAttachmentData);
-                email.FileAttachments.AddRange(attachments);
-               
                 var textObject = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name);
-                email.PlainTextBody = GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name));
-                email.HtmlBody = GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name));
+                email = SetMessage(email,
+                    GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
+                    GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
 
-            return email;
+            var gmailAttachmentData = GetAttachmentData(message.Payload.Parts);
+            if(gmailAttachmentData.Any()) 
+            { 
+                email.FileAttachments.AddRange(await GetAttachments(message.Id, gmailAttachmentData));
+            }
+
+            return email.Validate() ? email : null;
         }
 
         return null;
+    }
+
+    private EmailInfo SetMessage(EmailInfo email, string plain, string htmlbody)
+    {
+        return email with
+        {
+            PlainTextBody = plain,
+            HtmlBody = htmlbody
+        };
     }
 
     private IEnumerable<MessagePart> GetAttachmentData(IList<MessagePart> parts)
@@ -167,7 +174,11 @@ public class GmailApiService : IGmailApiService
             var attachPart = await service.Users.Messages.Attachments
                 .Get(AuthenticatedUser, messageId, attId)
                 .ExecuteAsync();
-            emailAttachments.Add(new FileAttachment(item.Filename, fileType, "", attachPart.Data));
+            var attachment = new FileAttachment(item.Filename, fileType, "", attachPart.Data);
+            if (attachment.Validate())
+            {
+                emailAttachments.Add(attachment);
+            }
         }
 
         return emailAttachments;
