@@ -6,12 +6,12 @@ using Newtonsoft.Json;
 
 namespace MailService.Infrastructure.Factories;
 
-public class GmailClientFactory : IGmailClientFactory
+public class GmailClientFactoryOauth : IGmailClientFactoryOauth
 {
-    private const string AppsettingsKey = "Appsettings:GoogleCredentialsFilename";
+    private const string AppsettingsKey = "Appsettings:GoogleCredentialsOAuthFilename";
     private readonly string googleCredentialsFilename;
 
-    public GmailClientFactory(IConfiguration configuration)
+    public GmailClientFactoryOauth(IConfiguration configuration)
     {
         googleCredentialsFilename = configuration.GetSection(AppsettingsKey).Value;
     }
@@ -38,7 +38,7 @@ public class GmailClientFactory : IGmailClientFactory
         return new GmailService(new BaseClientService.Initializer()
         {
             HttpClientInitializer = credential,
-            ApplicationName = nameof(GmailClientFactory)
+            ApplicationName = nameof(GmailClientFactoryOauth)
         });
     }
 }
