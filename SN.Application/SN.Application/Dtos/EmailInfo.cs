@@ -2,15 +2,21 @@
 
 namespace MailService.Infrastructure.EmailService;
 
-public record EmailInfo(int Id, string Date, string From, string Subject, string PlainTextBody, string HtmlBody)
+public record EmailInfo(int Id, string Date, string From, string Subject, string PlainTextBody, string HtmlBody) 
 {
-    public int Id { get; set; } = Id;
-    public string Date { get; set; } = Date;
-    public string From { get; set; } = From;
-    public string Subject { get; set; } = Subject;
-    public string PlainTextBody { get; set; } = PlainTextBody;
-    public string HtmlBody { get; set; } = HtmlBody;
     public List<FileAttachment> FileAttachments { get; init; } = new List<FileAttachment>();
+
+    public bool Validate()
+    {
+        if (Id < 0) return false;
+        if (string.IsNullOrWhiteSpace(From)) return false;
+        if (PlainTextBody is null && HtmlBody is null) return false;
+        if (!DateTime.TryParse(Date, out var parsatDatum)) return false;
+
+        return true;
+    }
+
+    public EmailInfo UpdatePlainText(string text) => this with { PlainTextBody = text };
 }
 
 public record FileAttachment(string FileName, string fileType, string Description, string Data)
@@ -27,5 +33,14 @@ public record FileAttachment(string FileName, string fileType, string Descriptio
         var base64String = Data.Replace("-", "+").Replace("_", "/");//.Replace(" ", "=");
 
         return Convert.FromBase64String(base64String);
+    }
+
+    public bool Validate()
+    {
+        if (string.IsNullOrWhiteSpace(FileName)) return false;
+        if (string.IsNullOrWhiteSpace(fileType)) return false;
+        if (string.IsNullOrWhiteSpace(Data)) return false;
+
+        return true;
     }
 }

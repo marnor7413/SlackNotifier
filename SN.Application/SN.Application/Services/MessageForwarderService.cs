@@ -37,13 +37,17 @@ public class MessageForwarderService : IMessageForwarderService
         var quotedAvastIdPattern = @">\s*<#[\w-]+>";
         var avastIdPattern = @"<#(.*?)>";
         var avastVirusFreeTextPattern = @"Virus-free.";
+        var avastVirusFreeTextPatternSE = @"Virusfritt.";
         var quotedAvastComPattern = @">\s*www\.avast\.com";
         var avastComPattern = @"www\.avast\.com";
 
-        emails.ForEach(e => 
-            e.PlainTextBody = Regex.Replace(e.PlainTextBody, 
-            $"{avastLinkPattern}|{quotedAvastLinkPattern}|{quotedAvastIdPattern}|{avastIdPattern}|{avastComPattern}|{quotedAvastComPattern}|{Regex.Escape(avastVirusFreeTextPattern)}", 
+        for (int i = 0; i < emails.Count; i++)
+        {
+            var email = emails[i];
+            emails[i] = email.UpdatePlainText(Regex.Replace(email.PlainTextBody,
+            $"{avastLinkPattern}|{quotedAvastLinkPattern}|{quotedAvastIdPattern}|{avastIdPattern}|{avastComPattern}|{quotedAvastComPattern}|{Regex.Escape(avastVirusFreeTextPattern)}|{Regex.Escape(avastVirusFreeTextPatternSE)}",
             string.Empty));
+        }
 
         return emails;
     }
