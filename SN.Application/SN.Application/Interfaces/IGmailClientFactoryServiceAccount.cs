@@ -2,7 +2,7 @@
 
 namespace MailService.Infrastructure.Factories;
 
-public interface IGmailClientFactorySericeAccount
+public interface IGmailClientFactoryServiceAccount
 {
     GmailService CreateGmailClient();
 }

@@ -22,7 +22,7 @@ public class GmailApiService : IGmailApiService
 
     private string base64String = string.Empty;
 
-    public GmailApiService(IGmailClientFactorySericeAccount gmailClientFactory)
+    public GmailApiService(IGmailClientFactoryServiceAccount gmailClientFactory)
     {
         service = gmailClientFactory.CreateGmailClient();
     }

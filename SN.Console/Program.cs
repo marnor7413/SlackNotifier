@@ -78,7 +78,7 @@ class Program
                 services.AddScoped<IMessageForwarderService, MessageForwarderService>();
                 services.AddScoped<IGmailApiService, GmailApiService>();
                 services.AddScoped<IGmailClientFactoryOauth, GmailClientFactoryOauth>();
-                services.AddScoped<IGmailClientFactorySericeAccount, GmailClientFactorySericeAccount>();
+                services.AddScoped<IGmailClientFactoryServiceAccount, GmailClientFactoryServiceAccount>();
                 services.AddScoped<ISlackService, SlackService>();
             });
 
