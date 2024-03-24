@@ -478,4 +478,6 @@ $RECYCLE.BIN/
 
 # Secrets file
 secrets.json
-googleCredentials.json
+googleCredentialsOAuth.json
+googleCredentialsServiceAccount.json
+/SN.Console/certificate.p12

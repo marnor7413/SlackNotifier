@@ -11,6 +11,7 @@ namespace SN.Infrastructure.Services.Gmail;
 
 public class GmailApiService : IGmailApiService
 {
+    private IGmailClientFactoryOauth factory;
     private GmailService service;
 
     private const string AuthenticatedUser = "me";
@@ -22,13 +23,15 @@ public class GmailApiService : IGmailApiService
 
     private string base64String = string.Empty;
 
-    public GmailApiService(IGmailClientFactory gmailClientFactory)
+    public GmailApiService(IGmailClientFactoryOauth gmailClientFactory)
     {
-        service = gmailClientFactory.CreateGmailClient();
+        factory = gmailClientFactory;
     }
 
     public async Task<List<EmailInfo>> CheckForEmails()
     {
+        service = await factory.CreateGmailClient();
+
         var emailListRequest = service.Users.Messages.List(AuthenticatedUser);
         emailListRequest.LabelIds = InboxFolder;
         emailListRequest.IncludeSpamTrash = false;
@@ -36,7 +39,16 @@ public class GmailApiService : IGmailApiService
         var emails = new List<EmailInfo>();
 
         int counter = 1;
-        var emailListResponse = await emailListRequest.ExecuteAsync();
+        ListMessagesResponse emailListResponse;
+        try
+        {
+            emailListResponse = await emailListRequest.ExecuteAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
         var threads = emailListResponse.Messages?.GroupBy(x => x.ThreadId) ?? Enumerable.Empty<IGrouping<string, Message>>();
 
         foreach (var thread in threads)
@@ -148,13 +160,8 @@ public class GmailApiService : IGmailApiService
 
     private IEnumerable<MessagePart> GetAttachmentData(IList<MessagePart> parts)
     {
-        var supportedFileTypes = new List<string>() 
-        { 
-            MimeType.ImageJpeg.Name,
-            MimeType.ApplicationPdf.Name
-        }.AsReadOnly();
-
-        return parts.Where(x => supportedFileTypes.Contains(x.MimeType));
+        return parts.Where(x => FileExtension.SupportedSlackFileTypes.Contains(x.MimeType) 
+            && !string.IsNullOrWhiteSpace(x.Filename));
     }
 
     private async Task<List<FileAttachment>> GetAttachments(string messageId, IEnumerable<MessagePart> gmailAttachmentData)
@@ -162,19 +169,13 @@ public class GmailApiService : IGmailApiService
         var emailAttachments = new List<FileAttachment>();
         foreach (var item in gmailAttachmentData)
         {
+            var fileType = FileExtension.FromMimeType(new MimeType(item.MimeType));
 
-            var fileType = item.MimeType switch
-            {
-                var compiletimeText when compiletimeText == MimeType.ImageJpeg.Name => FileExtension.Jpeg.Name,
-                var compiletimeText when compiletimeText == MimeType.ApplicationPdf.Name => FileExtension.Pdf.Name,
-                _ => string.Empty
-            };
-            
             var attId = item.Body.AttachmentId;
             var attachPart = await service.Users.Messages.Attachments
                 .Get(AuthenticatedUser, messageId, attId)
                 .ExecuteAsync();
-            var attachment = new FileAttachment(item.Filename, fileType, "", attachPart.Data);
+            var attachment = new FileAttachment(item.Filename, fileType.Name, "", attachPart.Data);
             if (attachment.Validate())
             {
                 emailAttachments.Add(attachment);
