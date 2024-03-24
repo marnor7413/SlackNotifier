@@ -43,11 +43,10 @@ public class GmailApiService : IGmailApiService
         try
         {
             emailListResponse = await emailListRequest.ExecuteAsync();
-
         }
         catch (Exception ex)
         {
-
+            Console.WriteLine(ex.Message);
             throw;
         }
         var threads = emailListResponse.Messages?.GroupBy(x => x.ThreadId) ?? Enumerable.Empty<IGrouping<string, Message>>();

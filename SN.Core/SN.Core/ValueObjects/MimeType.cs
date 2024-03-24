@@ -17,4 +17,10 @@ public record MimeType(string Name)
     public static MimeType PortableNetworkGraphics { get; } = new("image/png"); 
     public static MimeType Powerpoint { get; } = new("application/vnd.ms-powerpoint"); 
     public static MimeType PowerpointOpenXml { get; } = new("application/vnd.openxmlformats-officedocument.presentationml.presentation"); 
+    public static MimeType Excel { get; } = new("application/vnd.ms-excel"); 
+    public static MimeType ExcelOpenXml { get; } = new("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); 
+    public static MimeType ExcelMacroEnabled { get; } = new("application/vnd.ms-excel.sheet.macroEnabled.12"); 
+    public static MimeType Zip { get; } = new("application/zip"); 
+    public static MimeType Tiff { get; } = new("image/tiff"); 
+    public static MimeType RichText { get; } = new("application/rtf"); 
 }

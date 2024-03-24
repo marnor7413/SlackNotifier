@@ -13,6 +13,13 @@ public record FileExtension(string Name)
     public static FileExtension PortableNetworkGraphics { get; } = new("png");
     public static FileExtension Powerpoint { get; } = new("ppt");
     public static FileExtension PowerpointOpenXml { get; } = new("pptx");
+    public static FileExtension Excel { get; } = new("xls");
+    public static FileExtension ExcelOpenXml { get; } = new("xlsx");
+    public static FileExtension ExcelMacroEnabled { get; } = new("xlsm");
+    public static FileExtension Zip { get; } = new("zip");
+    public static FileExtension Tiff { get; } = new("tiff");
+    public static FileExtension RichText { get; } = new("rtf");
+    public static FileExtension IphonePagesFileformat { get; } = new("pages");
     public static FileExtension UnsupportedFileType { get; } = new("Unsupported filetype");
 
     public static FileExtension FromMimeType(MimeType mimeType)
@@ -28,6 +35,13 @@ public record FileExtension(string Name)
             var type when type == MimeType.Gif => Gif,
             var type when type == MimeType.Csv => Csv,
             var type when type == MimeType.Powerpoint => Powerpoint,
+            var type when type == MimeType.Excel => Excel,
+            var type when type == MimeType.ExcelOpenXml => ExcelOpenXml,
+            var type when type == MimeType.ExcelMacroEnabled => ExcelMacroEnabled,
+            var type when type == MimeType.Zip => Zip,
+            var type when type == MimeType.Tiff => Tiff,
+            var type when type == MimeType.RichText => RichText,
+            var type when type == MimeType.IphonePagesFileformat => IphonePagesFileformat,
             var type when type == MimeType.PortableNetworkGraphics => PortableNetworkGraphics,
             _ => UnsupportedFileType
         };
@@ -46,6 +60,13 @@ public record FileExtension(string Name)
             MimeType.PortableNetworkGraphics.Name,
             MimeType.Powerpoint.Name,
             MimeType.PowerpointOpenXml.Name,
+            MimeType.Excel.Name,
+            MimeType.ExcelOpenXml.Name,
+            MimeType.ExcelMacroEnabled.Name,
+            MimeType.Zip.Name,
+            MimeType.Tiff.Name,
+            MimeType.RichText.Name,
+            MimeType.IphonePagesFileformat.Name,
         }
         .AsReadOnly();
 }
