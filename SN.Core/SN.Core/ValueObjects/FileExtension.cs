@@ -32,4 +32,20 @@ public record FileExtension(string Name)
             _ => UnsupportedFileType
         };
     }
+
+    public static IReadOnlyCollection<string> SupportedSlackFileTypes => new List<string>()
+        {
+            MimeType.ImageJpeg.Name,
+            MimeType.Pdf.Name,
+            MimeType.Text.Name,
+            MimeType.Bitmap.Name,
+            MimeType.Word97_2003.Name,
+            MimeType.MicrosoftWord.Name,
+            MimeType.Gif.Name,
+            MimeType.Csv.Name,
+            MimeType.PortableNetworkGraphics.Name,
+            MimeType.Powerpoint.Name,
+            MimeType.PowerpointOpenXml.Name,
+        }
+        .AsReadOnly();
 }

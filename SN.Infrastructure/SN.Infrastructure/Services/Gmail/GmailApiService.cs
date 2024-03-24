@@ -161,23 +161,7 @@ public class GmailApiService : IGmailApiService
 
     private IEnumerable<MessagePart> GetAttachmentData(IList<MessagePart> parts)
     {
-        var supportedFileTypes = new List<string>()
-        {
-            MimeType.ImageJpeg.Name,
-            MimeType.Pdf.Name,
-            MimeType.Text.Name,
-            MimeType.Bitmap.Name, 
-            MimeType.Word97_2003.Name,
-            MimeType.MicrosoftWord.Name,
-            MimeType.Gif.Name,
-            MimeType.Csv.Name,
-            MimeType.PortableNetworkGraphics.Name,
-            MimeType.Powerpoint.Name,
-            MimeType.PowerpointOpenXml.Name,
-        }
-        .AsReadOnly();
-
-        return parts.Where(x => supportedFileTypes.Contains(x.MimeType) 
+        return parts.Where(x => FileExtension.SupportedSlackFileTypes.Contains(x.MimeType) 
             && !string.IsNullOrWhiteSpace(x.Filename));
     }
 
