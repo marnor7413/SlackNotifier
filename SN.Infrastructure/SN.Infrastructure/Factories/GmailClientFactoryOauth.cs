@@ -16,14 +16,14 @@ public class GmailClientFactoryOauth : IGmailClientFactoryOauth
         googleCredentialsFilename = configuration.GetSection(AppsettingsKey).Value;
     }
 
-    public GmailService CreateGmailClient()
+    public async Task<GmailService> CreateGmailClient()
     {
         UserCredential credential;
         string credPathToken = Path.Combine(Directory.GetCurrentDirectory(), googleCredentialsFilename);
         string json = File.ReadAllText(credPathToken);
 
         var gsecrets = JsonConvert.DeserializeObject<GoogleClientSecrets>(json);
-        credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+        credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
             gsecrets.Secrets,
             new[]
             {
@@ -32,8 +32,7 @@ public class GmailClientFactoryOauth : IGmailClientFactoryOauth
                 GmailService.Scope.MailGoogleCom
             },
             "user",
-            CancellationToken.None)
-        .Result;
+            CancellationToken.None);
 
         return new GmailService(new BaseClientService.Initializer()
         {

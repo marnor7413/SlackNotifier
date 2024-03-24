@@ -2,8 +2,6 @@
 using MailService.Infrastructure.EmailService;
 using MailService.Infrastructure.EmailServices;
 using MailService.Infrastructure.SlackServices;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 
 namespace MailService.Application.Services;

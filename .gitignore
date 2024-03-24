@@ -480,3 +480,4 @@ $RECYCLE.BIN/
 secrets.json
 googleCredentialsOAuth.json
 googleCredentialsServiceAccount.json
+/SN.Console/certificate.p12

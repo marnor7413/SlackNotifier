@@ -17,7 +17,7 @@ public class SlackService : ISlackService
     {
         _options = options.Value.Single(x => x.Subject == nameof(SlackService));
         _httpClientFactory = httpClientFactory;
-    }
+        }
 
     public async Task SendMessage(List<EmailInfo> messages)
     {
