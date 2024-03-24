@@ -8,5 +8,13 @@ public record MimeType(string Name)
     public static MimeType MultiPartAlternative { get; } = new("multipart/alternative");
     public static MimeType IphonePagesFileformat { get; } = new("application/x-iwork-pages-sffpages");
     public static MimeType ImageJpeg { get; } = new("image/jpeg");
-    public static MimeType ApplicationPdf { get; } = new("application/pdf");
+    public static MimeType Pdf { get; } = new("application/pdf");
+    public static MimeType Bitmap { get; } = new("image/bmp"); 
+    public static MimeType Word97_2003 { get; } = new("application/msword"); 
+    public static MimeType MicrosoftWord { get; } = new("application/vnd.openxmlformats-officedocument.wordprocessingml.document"); 
+    public static MimeType Gif { get; } = new("image/gif"); 
+    public static MimeType Csv { get; } = new("text/csv"); 
+    public static MimeType PortableNetworkGraphics { get; } = new("image/png"); 
+    public static MimeType Powerpoint { get; } = new("application/vnd.ms-powerpoint"); 
+    public static MimeType PowerpointOpenXml { get; } = new("application/vnd.openxmlformats-officedocument.presentationml.presentation"); 
 }

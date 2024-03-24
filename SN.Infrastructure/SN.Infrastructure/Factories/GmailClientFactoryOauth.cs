@@ -1,6 +1,7 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Services;
+using Google.Apis.Util.Store;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
@@ -22,6 +23,7 @@ public class GmailClientFactoryOauth : IGmailClientFactoryOauth
         string credPathToken = Path.Combine(Directory.GetCurrentDirectory(), googleCredentialsFilename);
         string json = File.ReadAllText(credPathToken);
 
+        string credPath = "token.json";
         var gsecrets = JsonConvert.DeserializeObject<GoogleClientSecrets>(json);
         credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
             gsecrets.Secrets,
@@ -32,7 +34,8 @@ public class GmailClientFactoryOauth : IGmailClientFactoryOauth
                 GmailService.Scope.MailGoogleCom
             },
             "user",
-            CancellationToken.None);
+            CancellationToken.None,
+            new FileDataStore(credPath, true));
 
         return new GmailService(new BaseClientService.Initializer()
         {
