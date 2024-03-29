@@ -17,15 +17,16 @@ public class MessageForwarderService : IMessageForwarderService
         _slackService = slackService;
     }
 
-    public async Task Run()
+    public async Task<bool> Run()
     {
         var emails = await _gmailService.CheckForEmails();
 
-        if (!emails.Any()) return;
+        if (!emails.Any()) return false;
 
         var garbageTextRemoved = RemoveAvastAd(emails);
 
         await _slackService.SendMessage(garbageTextRemoved.OrderBy(x => x.Id).ToList());
+        return true;
     }
 
     private static List<EmailInfo> RemoveAvastAd(List<EmailInfo> emails)

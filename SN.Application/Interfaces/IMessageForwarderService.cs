@@ -2,5 +2,5 @@
 
 public interface IMessageForwarderService
 {
-    Task Run();
+    Task<bool> Run();
 }

@@ -4,7 +4,7 @@ public record FileAttachment(string FileName, string fileType, string Descriptio
 {
     public byte[] ToByteArray()
     {
-        var base64String = Data.Replace("-", "+").Replace("_", "/");//.Replace(" ", "=");
+        var base64String = Data.Replace("-", "+").Replace("_", "/");
 
         return Convert.FromBase64String(base64String);
     }
