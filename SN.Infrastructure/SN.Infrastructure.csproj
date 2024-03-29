@@ -3,16 +3,17 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Gmail.v1" Version="1.62.1.3217" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SN.Core\SN.Core\SN.Core.csproj" />
+    <ProjectReference Include="..\SN.Application\SN.Application.csproj" />
+    <ProjectReference Include="..\SN.Core\SN.Core.csproj" />
   </ItemGroup>
 
 </Project>
