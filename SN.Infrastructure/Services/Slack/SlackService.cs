@@ -89,10 +89,10 @@ public class SlackService : ISlackService
     private JsonObject ComposeMessage(EmailInfo message)
     {
         var text = new StringBuilder();
-        text.AppendLine($"*Skickat: {DateTime.Parse(message.Date).ToLocalTime()}*");
-        text.AppendLine($"*Från: {FormatEmailLinkInFromText(message.From)}*");
-        text.AppendLine($"*Ämne: {message.Subject}*");
-        text.AppendLine(message.PlainTextBody);
+        text.AppendLine($"*Skickat: {DateTime.Parse(message.date).ToLocalTime()}*");
+        text.AppendLine($"*Från: {FormatEmailLinkInFromText(message.from)}*");
+        text.AppendLine($"*Ämne: {message.subject}*");
+        text.AppendLine(message.plainTextBody);
 
         var json = new JsonObject
         {

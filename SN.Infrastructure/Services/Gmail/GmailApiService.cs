@@ -96,7 +96,7 @@ public class GmailApiService : IGmailApiService
                 string.Empty, 
                 string.Empty);
 
-            if (email.From.StartsWith("Google") || email.From.StartsWith("The Gmail"))
+            if (email.from.StartsWith("Google") || email.from.StartsWith("The Gmail"))
             {
                 await service.Users.Messages
                     .Trash(AuthenticatedUser, emailId)
@@ -153,8 +153,8 @@ public class GmailApiService : IGmailApiService
     {
         return email with
         {
-            PlainTextBody = plain,
-            HtmlBody = htmlbody
+            plainTextBody = plain,
+            htmlBody = htmlbody
         };
     }
 
