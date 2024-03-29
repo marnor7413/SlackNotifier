@@ -25,7 +25,7 @@ public class MessageForwarderService : IMessageForwarderService
 
         var garbageTextRemoved = RemoveAvastAd(emails);
 
-        await _slackService.SendMessage(garbageTextRemoved.OrderBy(x => x.id).ToList());
+        await _slackService.SendMessage(garbageTextRemoved.OrderBy(x => x.Id).ToList());
     }
 
     private static List<EmailInfo> RemoveAvastAd(List<EmailInfo> emails)
@@ -42,7 +42,7 @@ public class MessageForwarderService : IMessageForwarderService
         for (int i = 0; i < emails.Count; i++)
         {
             var email = emails[i];
-            emails[i] = email.UpdatePlainText(Regex.Replace(email.plainTextBody,
+            emails[i] = email.UpdatePlainText(Regex.Replace(email.PlainTextBody,
             $"{avastLinkPattern}|{quotedAvastLinkPattern}|{quotedAvastIdPattern}|{avastIdPattern}|{avastComPattern}|{quotedAvastComPattern}|{Regex.Escape(avastVirusFreeTextPattern)}|{Regex.Escape(avastVirusFreeTextPatternSE)}",
             string.Empty));
         }

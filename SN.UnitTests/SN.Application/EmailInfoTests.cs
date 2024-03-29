@@ -110,6 +110,6 @@ public class EmailInfoTests : BaseTests
         var result = SUT.UpdatePlainText(newText);
 
         // Assert
-        result.plainTextBody.Should().Be(newText);
+        result.PlainTextBody.Should().Be(newText);
     }
 }

@@ -1,18 +1,18 @@
 ﻿namespace MailService.Infrastructure.EmailService;
 
-public record EmailInfo(int id, string date, string from, string subject, string plainTextBody, string htmlBody) 
+public record EmailInfo(int Id, string Date, string From, string Subject, string PlainTextBody, string HtmlBody) 
 {
     public List<FileAttachment> FileAttachments { get; init; } = new List<FileAttachment>();
 
     public bool Validate()
     {
-        if (id < 0) return false;
-        if (string.IsNullOrWhiteSpace(from)) return false;
-        if (string.IsNullOrWhiteSpace(plainTextBody) && string.IsNullOrWhiteSpace(htmlBody)) return false;
-        if (!DateTime.TryParse(date, out var parsatDatum)) return false;
+        if (Id < 0) return false;
+        if (string.IsNullOrWhiteSpace(From)) return false;
+        if (string.IsNullOrWhiteSpace(PlainTextBody) && string.IsNullOrWhiteSpace(HtmlBody)) return false;
+        if (!DateTime.TryParse(Date, out var parsatDatum)) return false;
 
         return true;
     }
 
-    public EmailInfo UpdatePlainText(string text) => this with { plainTextBody = text };
+    public EmailInfo UpdatePlainText(string text) => this with { PlainTextBody = text };
 }

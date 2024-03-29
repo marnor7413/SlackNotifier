@@ -1,16 +1,7 @@
-﻿using System.Text;
-
-namespace MailService.Infrastructure.EmailService;
+﻿namespace MailService.Infrastructure.EmailService;
 
 public record FileAttachment(string FileName, string fileType, string Description, string Data)
 {
-    public byte[] ToUTF8ByteArray()
-    {
-        var base64String = Data.Replace("-", "+").Replace("_", "/");//.Replace(" ", "=");
-
-        return Encoding.UTF8.GetBytes(base64String);
-    }
-
     public byte[] ToByteArray()
     {
         var base64String = Data.Replace("-", "+").Replace("_", "/");//.Replace(" ", "=");
