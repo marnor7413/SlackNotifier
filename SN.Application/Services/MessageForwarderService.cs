@@ -31,7 +31,7 @@ public class MessageForwarderService : IMessageForwarderService
 
     private static List<EmailInfo> RemoveAvastAd(List<EmailInfo> emails)
     {
-        var avastLinkPattern = @"<https://www.avast.com/sig-email\?.*?>";
+        var avastLinkPattern = @"<https://www.avast.com/sig-email?.*?>";
         var quotedAvastLinkPattern = @">\s*<https://www.avast.com/sig-email\?.*?>";
         var quotedAvastIdPattern = @">\s*<#[\w-]+>";
         var avastIdPattern = @"<#(.*?)>";
