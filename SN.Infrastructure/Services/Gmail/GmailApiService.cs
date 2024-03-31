@@ -11,7 +11,7 @@ namespace SN.Infrastructure.Services.Gmail;
 
 public class GmailApiService : IGmailApiService
 {
-    private IGmailClientFactoryOauth factory;
+    private readonly IGmailServiceFactoryOauth gmailServiceFactory;
     private GmailService service;
 
     private const string AuthenticatedUser = "me";
@@ -24,13 +24,14 @@ public class GmailApiService : IGmailApiService
     private string base64String = string.Empty;
 
     public GmailApiService(IGmailClientFactoryOauth gmailClientFactory)
+    public GmailApiService(IGmailServiceFactoryOauth gmailServiceFactory, 
     {
-        factory = gmailClientFactory;
+        this.gmailServiceFactory = gmailServiceFactory;
     }
 
     public async Task<List<EmailInfo>> CheckForEmails()
     {
-        service = await factory.CreateGmailClient();
+        service = await gmailServiceFactory.CreateService();
 
         var emailListRequest = service.Users.Messages.List(AuthenticatedUser);
         emailListRequest.LabelIds = InboxFolder;
