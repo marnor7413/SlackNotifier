@@ -4,5 +4,5 @@ namespace MailService.Infrastructure.Factories;
 
 public interface IGmailServiceFactoryOauth
 {
-    Task<GmailService> CreateService();
+    Task<GmailService> GetService();
 }

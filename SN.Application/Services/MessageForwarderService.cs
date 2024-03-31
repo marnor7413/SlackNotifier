@@ -23,9 +23,9 @@ public class MessageForwarderService : IMessageForwarderService
 
         if (!emails.Any()) return false;
 
-        var garbageTextRemoved = RemoveAvastAd(emails);
+        var cleanedText = RemoveAvastAd(emails);
 
-        await _slackService.SendMessage(garbageTextRemoved.OrderBy(x => x.Id).ToList());
+        await _slackService.SendMessage(cleanedText.OrderBy(x => x.Id).ToList());
         return true;
     }
 

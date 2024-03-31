@@ -9,6 +9,8 @@ namespace MailService.Infrastructure.Factories;
 
 public class GmailServiceFactoryOauth : IGmailServiceFactoryOauth
 {
+    public const string AuthenticatedUser = "me";
+
     private const string AppsettingsKey = "Appsettings:GoogleCredentialsOAuthFilename";
     private readonly string googleCredentialsFilename;
 
@@ -17,7 +19,7 @@ public class GmailServiceFactoryOauth : IGmailServiceFactoryOauth
         googleCredentialsFilename = configuration.GetSection(AppsettingsKey).Value;
     }
 
-    public async Task<GmailService> CreateService()
+    public async Task<GmailService> GetService()
     {
         UserCredential credential;
         string credPathToken = Path.Combine(Directory.GetCurrentDirectory(), googleCredentialsFilename);
