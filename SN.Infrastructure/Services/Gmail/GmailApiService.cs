@@ -1,32 +1,29 @@
 ﻿using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using MailService.Infrastructure.EmailService;
-using MailService.Infrastructure.Extensions;
 using System.Text;
 using MailService.Infrastructure.Factories;
 using MailService.Infrastructure.EmailServices;
 using SN.Core.ValueObjects;
+using MailService.Infrastructure.Extensions;
 
 namespace SN.Infrastructure.Services.Gmail;
 
 public class GmailApiService : IGmailApiService
 {
     private readonly IGmailServiceFactoryOauth gmailServiceFactory;
+    private readonly IMessageTypeService messageTypeService;
     private GmailService service;
 
     private const string AuthenticatedUser = "me";
     private const string FilterUnreadEmailsOnly = "is:unread";
     private const string InboxFolder = "INBOX";
 
-    private const string HeaderEncodingValueForBase64 = "base64";
-    private const string HeaderEncodingValueContentTransferEncoding = "Content-Transfer-Encoding";
-
-    private string base64String = string.Empty;
-
-    public GmailApiService(IGmailClientFactoryOauth gmailClientFactory)
     public GmailApiService(IGmailServiceFactoryOauth gmailServiceFactory, 
+        IMessageTypeService messageTypeService)
     {
         this.gmailServiceFactory = gmailServiceFactory;
+        this.messageTypeService = messageTypeService;
     }
 
     public async Task<List<EmailInfo>> CheckForEmails()
@@ -110,13 +107,13 @@ public class GmailApiService : IGmailApiService
             {
                 email = email.SetMessageBody(GetText(message.Payload), GetText(message.Payload));
             }
-            else if (IsAPlainMessage(message))
+            else if (message.IsAPlainMessage())
             {
                 email = email.SetMessageBody(
                     GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
                     GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
-            else if (IsMessageWithStupidIphoneAttachment(message))
+            else if (message.IsMessageWithStupidIphoneAttachment())
             {
                 email = email.SetMessageBody(
                     GetText(message.Payload.Parts
@@ -126,13 +123,13 @@ public class GmailApiService : IGmailApiService
                         .SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name).Parts
                         .SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
-            else if (IsMultiPartAlternativeMessage(message))
+            else if (message.IsMultiPartAlternativeMessage())
             {
                 email = email.SetMessageBody(
                     GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
                     GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
-            else if (IsMultiPartMixed(message)) // text + image attachment
+            else if (message.IsMultiPartMixed()) // text + image attachment
             {
                 var textObject = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name);
                 email = email.SetMessageBody(
@@ -177,34 +174,6 @@ public class GmailApiService : IGmailApiService
         }
 
         return emailAttachments;
-    }
-
-    private bool IsMultiPartMixed(Message message)
-    {
-        return message.HasMimeType(MimeType.MultiPartMixed.Name) &&
-            message.HasSubMimeType(MimeType.MultiPartAlternative.Name);
-    }
-
-    private bool IsMultiPartAlternativeMessage(Message message)
-    {
-        return message.HasMimeType(MimeType.MultiPartAlternative.Name) &&
-            message.HasSubMimeType(MimeType.Text.Name) &&
-            message.HasSubMimeType(MimeType.Html.Name) &&
-            message.Payload.Parts.Count() == 2;
-    }
-
-    private bool IsMessageWithStupidIphoneAttachment(Message message)
-    {
-        return message.HasMimeType(MimeType.MultiPartMixed.Name) &&
-            message.HasSubMimeType(MimeType.IphonePagesFileformat.Name);
-    }
-
-    private static bool IsAPlainMessage(Message message)
-    {
-        return message.HasMimeType(MimeType.Text.Name) &&
-            message.HasSubMimeType(MimeType.Text.Name) &&
-            message.HasSubMimeType(MimeType.Text.Name) &&
-            message.Payload.Parts.Count() == 2;
     }
 
     private string GetText(MessagePart payload)
