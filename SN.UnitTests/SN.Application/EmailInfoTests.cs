@@ -1,6 +1,8 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using MailService.Infrastructure.EmailService;
+using System.Text.Json.Nodes;
+using System.Text;
 
 namespace SN.UnitTests.SN.Application;
 
@@ -40,9 +42,11 @@ public class EmailInfoTests : BaseTests
     }
 
     [Theory]
+    [InlineData("2024-05-25", true)]
     [InlineData("2024-05-25asdf", false)]
-    [InlineData("2024-05-25", true)]
-    [InlineData("2024-05-25", true)]
+    [InlineData("", false)]
+    [InlineData(" ", false)]
+    [InlineData(null, false)]
     public void WhenValidating_AndDateIsValidated_ReturnsCorrectValue(string date, bool expected)
     {
         // Assign
@@ -100,16 +104,96 @@ public class EmailInfoTests : BaseTests
     }
 
     [Fact]
-    public void WhenUpdatingPlaintext_AndUpdatedObjectIsReturned_ItContainsCorrectInfo()
+    public void WhenUpdatingMessageBody_AndAnUpdatedObjectIsReturned_ItContainsCorrectInfo()
     {
         // Assign
         var SUT = new EmailInfo(id, date, from, subject, text, html);
         var newText = Fixture.Create<string>();
+        var newHtmlText = Fixture.Create<string>();
 
         // Act
-        var result = SUT.UpdatePlainText(newText);
+        var result = SUT.SetMessageBody(newText, newHtmlText);
 
         // Assert
         result.PlainTextBody.Should().Be(newText);
+        result.HtmlBody.Should().Be(newHtmlText);
+    }
+
+    [Fact]
+    public void WhenCreatingRequestBodyForSlack_AndObjectIsReturned_ItIsCorrectType()
+    {
+        // Assign
+        var SUT = new EmailInfo(id, date, from, subject, text, html);
+
+        // Act
+        var result = SUT.ToSlackFormattedStringContent(Fixture.Create<string>());
+
+        // Assert
+        result.GetType().Should().Be(typeof(StringContent));
+    }
+
+    [Fact]
+    public void WhenCreatingRequestBodyForSlack_AndObjectIsReturned_ItHasCorrectContentHeader()
+    {
+        // Assign
+        const string Expected = "application/json";
+        var SUT = new EmailInfo(id, date, from, subject, text, html);
+
+        // Act
+        var result = SUT.ToSlackFormattedStringContent(Fixture.Create<string>());
+
+        // Assert
+        result.Headers.ContentType.MediaType.Should().Be(Expected);
+    }
+
+    [Fact]
+    public async Task WhenCreatingRequestBodyForSlack_AndObjectIsReturned_ItIsGeneratedCorrectly()
+    {
+        // Assign
+        var SUT = new EmailInfo(id, date, from, subject, text, html);
+        string channel = Fixture.Create<string>();
+        var expected = GenerateJsonTextObject(channel, date, from, subject, text);
+
+        // Act
+        var result = SUT.ToSlackFormattedStringContent(channel);
+
+        // Assert
+        var jsonText = await result.ReadAsStringAsync();
+        jsonText.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("abc 123 <abc.123@anymail.com>", "abc 123 <mailto:abc.123@anymail.com|abc.123@anymail.com>")]
+    [InlineData("abc 123", "abc 123")]
+    public async Task WhenCreatingRequestBodyForSlack_AndDifferentFormatsInFrom_ItIsGeneratedCorrectly(string indata, string expectedFrom)
+    {
+        // Assign
+        var SUT = new EmailInfo(id, date, indata, subject, text, html);
+        string channel = Fixture.Create<string>();
+        var expected = GenerateJsonTextObject(channel, date, expectedFrom, subject, text);
+
+        // Act
+        var result = SUT.ToSlackFormattedStringContent(channel);
+
+        // Assert
+        var jsonText = await result.ReadAsStringAsync();
+        jsonText.Should().Be(expected);
+    }
+
+    private string GenerateJsonTextObject(string channel, string date, string from, string subject, string textMessage)
+    {
+        var text = new StringBuilder();
+        text.AppendLine($"*Skickat: {DateTime.Parse(date).ToLocalTime()}*");
+        text.AppendLine($"*Från: {from}*");
+        text.AppendLine($"*Ämne: {subject}*");
+        text.AppendLine(textMessage);
+
+        var json = new JsonObject
+        {
+            { "channel", channel },
+            { "text", text.ToString() }
+        };
+
+        return json.ToString();
     }
 }

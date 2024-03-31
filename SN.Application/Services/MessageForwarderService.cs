@@ -43,9 +43,9 @@ public class MessageForwarderService : IMessageForwarderService
         for (int i = 0; i < emails.Count; i++)
         {
             var email = emails[i];
-            emails[i] = email.UpdatePlainText(Regex.Replace(email.PlainTextBody,
+            emails[i] = email.SetMessageBody(Regex.Replace(email.PlainTextBody,
             $"{avastLinkPattern}|{quotedAvastLinkPattern}|{quotedAvastIdPattern}|{avastIdPattern}|{avastComPattern}|{quotedAvastComPattern}|{Regex.Escape(avastVirusFreeTextPattern)}|{Regex.Escape(avastVirusFreeTextPatternSE)}",
-            string.Empty));
+            string.Empty), email.HtmlBody);
         }
 
         return emails;

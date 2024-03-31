@@ -26,10 +26,9 @@ public class SlackService : ISlackService
 
         foreach (var message in messages)
         {
-            var text = ComposeMessage(message);
-            var textMessageRequestBody = CreateStringContentObjectForJsonObject(text);
-            var sendMessageResponse = await client.PostAsync(SlackApiEndpoints.PostMessage, textMessageRequestBody);
-            var sendMessageResponseInfo = await ExtractResponseDataFromHttpResponseMessage(sendMessageResponse);
+            var requestBody = message.ToSlackFormattedStringContent(_options.Destination);
+            var sendMessageResponse = await client.PostAsync(SlackApiEndpoints.PostMessage, requestBody);
+            var sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
             var sendMessageResult = sendMessageResponse.IsSuccessStatusCode switch
             {
                 true => "Message sent successfully.",
@@ -84,40 +83,5 @@ public class SlackService : ISlackService
             new KeyValuePair<string, string>("title", "Bifogad fil"),
             new KeyValuePair<string, string>("thread_ts", (string)responseObject.ts)
         };
-    }
-
-    private JsonObject ComposeMessage(EmailInfo message)
-    {
-        var text = new StringBuilder();
-        text.AppendLine($"*Skickat: {DateTime.Parse(message.Date).ToLocalTime()}*");
-        text.AppendLine($"*Från: {FormatEmailLinkInFromText(message.From)}*");
-        text.AppendLine($"*Ämne: {message.Subject}*");
-        text.AppendLine(message.PlainTextBody);
-
-        var json = new JsonObject
-        {
-            { "channel", _options.Destination },
-            { "text", text.ToString() }
-        };
-
-        return json;
-    }
-
-    private string FormatEmailLinkInFromText(string text)
-    {
-        if (text.Contains('@') && text.Contains('<') && text.Contains('>'))
-        {
-            var emailPattern = @"<(.*?)>";
-            var regExMatch = Regex.Match(text, emailPattern);
-            if (regExMatch.Success)
-            {
-                var emailText = regExMatch.Groups[1].Value;
-                string replacedText = Regex.Replace(text, emailPattern, $"<mailto:{emailText}|{emailText}>");
-
-                return replacedText;
-            }
-        }
-
-        return text;
     }
 }
