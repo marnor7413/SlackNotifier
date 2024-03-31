@@ -1,10 +1,8 @@
 ﻿using MailService.ConsoleApp.Configuration;
 using MailService.Infrastructure.EmailService;
+using MailService.Infrastructure.Extensions;
 using MailService.Infrastructure.SlackServices;
 using Microsoft.Extensions.Options;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 
 namespace SN.Infrastructure.Services.Slack;
 
@@ -48,7 +46,7 @@ public class SlackService : ISlackService
                 }
 
                 var uploadFileResponse = await client.PostAsync(SlackApiEndpoints.UploadFile, formData);
-                var uploadFileResponseInfo = await ExtractResponseDataFromHttpResponseMessage(uploadFileResponse);
+                var uploadFileResponseInfo = await uploadFileResponse.ExtractResponseDataFromHttpResponseMessage();
                 var uploadResult = uploadFileResponse.IsSuccessStatusCode switch
                 {
                     true => $"File {item.FileName} uploaded successfully.",
@@ -57,19 +55,6 @@ public class SlackService : ISlackService
                 Console.WriteLine(uploadResult);
             }
         }
-    }
-
-    private async Task<dynamic> ExtractResponseDataFromHttpResponseMessage(HttpResponseMessage uploadFileResponse)
-    {
-        return Newtonsoft.Json.JsonConvert
-            .DeserializeObject<dynamic>(await uploadFileResponse.Content.ReadAsStringAsync());
-    }
-
-    private StringContent CreateStringContentObjectForJsonObject(JsonObject text)
-    {
-        var requestBody = new StringContent(text.ToString(), Encoding.UTF8);
-        requestBody.Headers.ContentType.MediaType = "application/json";
-        return requestBody;
     }
 
     private KeyValuePair<string, string>[] CreateDefaultParametersForFileUpload(dynamic responseObject, FileAttachment item)
