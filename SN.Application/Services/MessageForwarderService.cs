@@ -8,10 +8,10 @@ namespace MailService.Application.Services;
 
 public class MessageForwarderService : IMessageForwarderService
 {
-    private readonly IGmailApiService _gmailService;
+    private readonly IGmailFetchService _gmailService;
     private readonly ISlackService _slackService;
 
-    public MessageForwarderService(IGmailApiService gmailService, ISlackService slackService)
+    public MessageForwarderService(IGmailFetchService gmailService, ISlackService slackService)
     {
         _gmailService = gmailService;
         _slackService = slackService;

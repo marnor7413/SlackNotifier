@@ -61,7 +61,7 @@ class Program
                 services.AddSingleton(provider =>
                     Options.Create(provider.GetRequiredService<List<SecretsOptions>>()));
                 
-                services.AddHttpClient<GmailApiService>((httpClient) =>
+                services.AddHttpClient<GmailFetchService>((httpClient) =>
                 {
                     var baseUri = configuration.GetSection(GmailBaseUriKey).Value;
                     httpClient.BaseAddress = new Uri(baseUri);
@@ -76,7 +76,7 @@ class Program
                 });
 
                 services.AddScoped<IMessageForwarderService, MessageForwarderService>();
-                services.AddScoped<IGmailApiService, GmailApiService>();
+                services.AddScoped<IGmailFetchService, GmailFetchService>();
                 services.AddScoped<IGmailServiceFactoryOauth, GmailServiceFactoryOauth>();
                 services.AddScoped<ISlackService, SlackService>();
             });

@@ -2,7 +2,7 @@
 
 namespace MailService.Infrastructure.EmailServices
 {
-    public interface IGmailApiService
+    public interface IGmailFetchService
     {
         Task<List<EmailInfo>> CheckForEmails();
     }

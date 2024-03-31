@@ -21,7 +21,7 @@ public class MessageForwarderServiceTests : BaseTests
     public async Task WhenFetchFromGmail_AndNoEmails_ThenEarlyExitIsMade()
     {
         // Assign
-        var gmailService = Fixture.Freeze<IGmailApiService>();
+        var gmailService = Fixture.Freeze<IGmailFetchService>();
         gmailService.CheckForEmails()
             .Returns(Enumerable.Empty<EmailInfo>().ToList());
 
@@ -41,7 +41,7 @@ public class MessageForwarderServiceTests : BaseTests
     public async Task WhenFetchFromGmail_AndNEmailsExist_ThenSlackServiceIsCalledAndTrueIsReturned()
     {
         // Assign
-        var gmailService = Fixture.Freeze<IGmailApiService>();
+        var gmailService = Fixture.Freeze<IGmailFetchService>();
         gmailService.CheckForEmails()
             .Returns(Fixture.CreateMany<EmailInfo>(1).ToList());
 
@@ -75,7 +75,7 @@ public class MessageForwarderServiceTests : BaseTests
         var text = new StringBuilder();
         foreach (string s in unexpecedStrings) { text.AppendLine(s); }
 
-        var gmailService = Fixture.Freeze<IGmailApiService>();
+        var gmailService = Fixture.Freeze<IGmailFetchService>();
         gmailService.CheckForEmails()
             .Returns(Fixture.Build<EmailInfo>()
                 .With(x => x.PlainTextBody, text.ToString())
