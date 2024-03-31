@@ -29,8 +29,8 @@ public class SlackService : ISlackService
             var sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
             var sendMessageResult = sendMessageResponse.IsSuccessStatusCode switch
             {
-                true => "Message sent successfully.",
-                false => $"Error occured when sending message. Status code: {sendMessageResponse.StatusCode}"
+                true => $"[{DateTime.Now.ToLocalTime()}] Message from {message.From} sent successfully to Slack.",
+                false => $"[{DateTime.Now.ToLocalTime()}] Error occured when sending message from {message.From} to Slack. Status code: {sendMessageResponse.StatusCode}"
             };
             Console.WriteLine(sendMessageResult);
 
@@ -49,8 +49,8 @@ public class SlackService : ISlackService
                 var uploadFileResponseInfo = await uploadFileResponse.ExtractResponseDataFromHttpResponseMessage();
                 var uploadResult = uploadFileResponse.IsSuccessStatusCode switch
                 {
-                    true => $"File {item.FileName} uploaded successfully.",
-                    false => $"Error uploading file. Status code: {uploadFileResponse.StatusCode}"
+                    true => $"[{DateTime.Now.ToLocalTime()}] File {item.FileName} in message from {message.From} uploaded successfully to Slack.",
+                    false => $"[{DateTime.Now.ToLocalTime()}] Error uploading file {item.FileName} in message from {message.From} to Slack. Status code: {uploadFileResponse.StatusCode}"
                 };
                 Console.WriteLine(uploadResult);
             }

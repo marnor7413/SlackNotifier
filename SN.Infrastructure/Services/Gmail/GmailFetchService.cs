@@ -45,7 +45,7 @@ public class GmailFetchService : IGmailFetchService
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured. Exception message: {ex.Message}");
             throw;
         }
         var threads = emailListResponse
@@ -85,10 +85,10 @@ public class GmailFetchService : IGmailFetchService
 
     private async Task<EmailInfo> GetEmail(string emailId, int counter)
     {
-        Console.WriteLine("Fetching gmail messages.");
+        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Fetching gmail messages.");
         var emailRequest = gmailService.Users.Messages.Get(GmailServiceFactoryOauth.AuthenticatedUser, emailId);
         var message = await emailRequest.ExecuteAsync();
-        Console.WriteLine("Message received.");
+        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Message received.");
 
         if (message != null)
         {
@@ -138,7 +138,7 @@ public class GmailFetchService : IGmailFetchService
                     payloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
                     payloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
-            else if (messageTypeService.IsMultiPartMixed(message)) // text + image attachment
+            else if (messageTypeService.IsMultiPartMixed(message))
             {
                 var textObject = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name);
                 email = email.SetMessageBody(
