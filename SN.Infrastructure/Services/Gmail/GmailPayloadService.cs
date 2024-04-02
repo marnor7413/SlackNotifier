@@ -10,10 +10,10 @@ namespace SN.Infrastructure.Services.Gmail;
 
 public class GmailPayloadService : IGmailPayloadService
 {
-    private readonly IGmailServiceFactoryOauth gmailServiceFactoryOauth;
+    private readonly IGmailServiceFactory gmailServiceFactoryOauth;
     private GmailService service;
 
-    public GmailPayloadService(IGmailServiceFactoryOauth gmailServiceFactoryOauth)
+    public GmailPayloadService(IGmailServiceFactory gmailServiceFactoryOauth)
     {
         this.gmailServiceFactoryOauth = gmailServiceFactoryOauth;
     }
@@ -34,7 +34,7 @@ public class GmailPayloadService : IGmailPayloadService
 
             var attId = item.Body.AttachmentId;
             var attachPart = await service.Users.Messages.Attachments
-                .Get(GmailServiceFactoryOauth.AuthenticatedUser, messageId, attId)
+                .Get(GmailServiceFactory.AuthenticatedUser, messageId, attId)
                 .ExecuteAsync();
             var attachment = new FileAttachment(item.Filename, fileType.Name, "", attachPart.Data);
             if (attachment.Validate())

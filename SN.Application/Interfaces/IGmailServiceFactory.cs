@@ -2,7 +2,7 @@
 
 namespace MailService.Infrastructure.Factories;
 
-public interface IGmailServiceFactoryOauth
+public interface IGmailServiceFactory
 {
     Task<GmailService> GetService();
 }

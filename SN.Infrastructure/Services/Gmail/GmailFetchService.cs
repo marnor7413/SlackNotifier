@@ -10,7 +10,7 @@ namespace SN.Infrastructure.Services.Gmail;
 
 public class GmailFetchService : IGmailFetchService
 {
-    private readonly IGmailServiceFactoryOauth gmailServiceFactory;
+    private readonly IGmailServiceFactory gmailServiceFactory;
     private readonly IMessageTypeService messageTypeService;
     private readonly IGmailPayloadService payloadService;
     private GmailService gmailService;
@@ -18,7 +18,7 @@ public class GmailFetchService : IGmailFetchService
     private const string FilterUnreadEmailsOnly = "is:unread";
     private const string InboxFolder = "INBOX";
 
-    public GmailFetchService(IGmailServiceFactoryOauth gmailServiceFactory, 
+    public GmailFetchService(IGmailServiceFactory gmailServiceFactory, 
         IMessageTypeService messageTypeService,
         IGmailPayloadService payloadService)
     {
@@ -31,7 +31,7 @@ public class GmailFetchService : IGmailFetchService
     {
         gmailService = await gmailServiceFactory.GetService();
 
-        var emailListRequest = gmailService.Users.Messages.List(GmailServiceFactoryOauth.AuthenticatedUser);
+        var emailListRequest = gmailService.Users.Messages.List(GmailServiceFactory.AuthenticatedUser);
         emailListRequest.LabelIds = InboxFolder;
         emailListRequest.IncludeSpamTrash = false;
         emailListRequest.Q = FilterUnreadEmailsOnly;
@@ -86,7 +86,7 @@ public class GmailFetchService : IGmailFetchService
     private async Task<EmailInfo> GetEmail(string emailId, int counter)
     {
         Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Fetching gmail messages.");
-        var emailRequest = gmailService.Users.Messages.Get(GmailServiceFactoryOauth.AuthenticatedUser, emailId);
+        var emailRequest = gmailService.Users.Messages.Get(GmailServiceFactory.AuthenticatedUser, emailId);
         var message = await emailRequest.ExecuteAsync();
         Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Message received.");
 
@@ -104,7 +104,7 @@ public class GmailFetchService : IGmailFetchService
             if (email.From.StartsWith("Google") || email.From.StartsWith("The Gmail"))
             {
                 await gmailService.Users.Messages
-                    .Trash(GmailServiceFactoryOauth.AuthenticatedUser, emailId)
+                    .Trash(GmailServiceFactory.AuthenticatedUser, emailId)
                     .ExecuteAsync();
 
                 return null;
@@ -161,7 +161,7 @@ public class GmailFetchService : IGmailFetchService
         };
 
         var modifyResponse = await gmailService.Users.Messages
-            .Modify(modifyRequest, GmailServiceFactoryOauth.AuthenticatedUser, emailId)
+            .Modify(modifyRequest, GmailServiceFactory.AuthenticatedUser, emailId)
             .ExecuteAsync();
     }
 }

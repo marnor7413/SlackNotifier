@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using SN.Application.Interfaces;
+using SN.Application.Services;
 using SN.Infrastructure.Services.Gmail;
 using SN.Infrastructure.Services.Slack;
 
@@ -79,7 +81,9 @@ class Program
                 services.AddScoped<IMessageForwarderService, MessageForwarderService>();
                 services.AddScoped<IGmailFetchService, GmailFetchService>();
                 services.AddScoped<IGmailPayloadService, GmailPayloadService>();
-                services.AddScoped<IGmailServiceFactoryOauth, GmailServiceFactoryOauth>();
+                services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+                services.AddScoped<IIOService, IOService>();
+                services.AddScoped<IGmailServiceFactory, GmailServiceFactory>();
                 services.AddScoped<IMessageTypeService, MessageTypeService>();
                 services.AddScoped<ISlackService, SlackService>();
             });
