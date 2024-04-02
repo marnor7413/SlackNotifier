@@ -13,24 +13,18 @@ public class MessageTypeService : IMessageTypeService
 
     public bool IsMultiPartAlternativeMessage(Message message)
     {
-        return HasMimeType(message, MimeType.MultiPartAlternative.Name) &&
-            HasSubMimeType(message, MimeType.Text.Name) &&
-            HasSubMimeType(message, MimeType.Html.Name) &&
-            message.Payload.Parts.Count() == 2;
+        return HasMimeType(message, MimeType.MultiPartAlternative.Name);
     }
 
-    public bool IsMessageWithStupidIphoneAttachment(Message message)
+    public bool IsMessageWithIphonePagesAttachment(Message message)
     {
         return HasMimeType(message, MimeType.MultiPartMixed.Name) &&
             HasSubMimeType(message, MimeType.IphonePagesFileformat.Name);
     }
 
-    public bool IsAPlainMessage(Message message)
+    public bool IsAPlainTextMessage(Message message)
     {
-        return HasMimeType(message, MimeType.Text.Name) &&
-            HasSubMimeType(message, MimeType.Text.Name) &&
-            HasSubMimeType(message, MimeType.Text.Name) &&
-            message.Payload.Parts.Count() == 2;
+        return HasMimeType(message, MimeType.Text.Name);
     }
 
     private bool HasMimeType(Message message, string mimeType)

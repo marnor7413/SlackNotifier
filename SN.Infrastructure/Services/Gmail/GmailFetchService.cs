@@ -116,13 +116,7 @@ public class GmailFetchService : IGmailFetchService
                     payloadService.GetText(message.Payload), 
                     payloadService.GetText(message.Payload));
             }
-            else if (messageTypeService.IsAPlainMessage(message))
-            {
-                email = email.SetMessageBody(
-                    payloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
-                    payloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
-            }
-            else if (messageTypeService.IsMessageWithStupidIphoneAttachment(message))
+            else if (messageTypeService.IsMessageWithIphonePagesAttachment(message))
             {
                 email = email.SetMessageBody(
                     payloadService.GetText(message.Payload.Parts
@@ -132,7 +126,7 @@ public class GmailFetchService : IGmailFetchService
                         .SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name).Parts
                         .SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
-            else if (messageTypeService.IsMultiPartAlternativeMessage(message))
+            else if (messageTypeService.IsAPlainTextMessage(message) || messageTypeService.IsMultiPartAlternativeMessage(message))
             {
                 email = email.SetMessageBody(
                     payloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
