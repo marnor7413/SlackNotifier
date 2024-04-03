@@ -41,6 +41,6 @@ public class GmailServiceFactoryTests : BaseTests
         var result = await SUT.GetService();
 
         // Assert
-        result.Should().BeOfType<EmailInfo>();
+        result.Should().BeOfType<GmailService>();
     }
 }
