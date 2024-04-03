@@ -48,12 +48,27 @@ public class GmailPayloadService : IGmailPayloadService
 
     public string GetText(MessagePart payload)
     {
-        if (payload.Body != null && payload.Body.Data != null)
+        if (EmailBodyTextExists(payload))
         {
-            var base64String = payload.Body.Data.Replace("-", "+").Replace("_", "/");
-            byte[] data = Convert.FromBase64String(base64String);
-            return Encoding.UTF8.GetString(data);
+            try
+            {
+                var base64String = FileAttachment.Base64UrlSafeStringToBase64Standard(payload.Body.Data);
+                byte[] data = Convert.FromBase64String(base64String);
+
+                return Encoding.UTF8.GetString(data);
+            }
+            catch (Exception)
+            {
+                // no implementation
+            }
+
         }
+
         return string.Empty;
+    }
+
+    private static bool EmailBodyTextExists(MessagePart payload)
+    {
+        return payload.Body != null && !string.IsNullOrWhiteSpace(payload.Body.Data);
     }
 }

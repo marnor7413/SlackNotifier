@@ -4,9 +4,9 @@ public record FileAttachment(string FileName, string fileType, string Descriptio
 {
     public byte[] ToByteArray()
     {
-        var base64String = Data.Replace("-", "+").Replace("_", "/");
+        var data = Base64UrlSafeStringToBase64Standard(Data);
 
-        return Convert.FromBase64String(base64String);
+        return Convert.FromBase64String(data);
     }
 
     public bool Validate()
@@ -17,4 +17,6 @@ public record FileAttachment(string FileName, string fileType, string Descriptio
 
         return true;
     }
+
+    public static string Base64UrlSafeStringToBase64Standard(string data) => data.Replace("-", "+").Replace("_", "/").Replace(" ", "=");
 }

@@ -1,6 +1,9 @@
 ﻿using AutoFixture;
 using FluentAssertions;
+using Google.Apis.Gmail.v1.Data;
 using MailService.Infrastructure.EmailService;
+using MailService.Infrastructure.Factories;
+using SN.Infrastructure.Services.Gmail;
 using System.Text;
 
 namespace SN.UnitTests.SN.Application;
@@ -80,6 +83,20 @@ public class FileAttachmentTests : BaseTests
 
         // Act
         var result = SUT.Validate();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Fact]
+    public void ConvertFromBase64UrlToBase64Standard_Base64UrlSafeText_IsConvertedCorrectly()
+    {
+        // Assign
+        const string base64UrlEncodedData = "PDw_Pz8-Pg  ";
+        const string expected = "PDw/Pz8+Pg==";
+
+        // Act
+        var result = FileAttachment.Base64UrlSafeStringToBase64Standard(base64UrlEncodedData);
 
         // Assert
         result.Should().Be(expected);

@@ -36,30 +36,7 @@ public class FileExtensionTests : BaseTests
     [Fact]
     public void SupportedSlackFileTypes_ShouldBeCorrect()
     {
-        // Assign
-        var expectedExtensions = new List<string>()
-        {
-            "text/plain",
-            "application/x-iwork-pages-sffpages",
-            "image/jpeg",
-            "application/pdf",
-            "image/bmp",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "image/gif",
-            "text/csv",
-            "image/png",
-            "application/vnd.ms-powerpoint",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/vnd.ms-excel.sheet.macroEnabled.12",
-            "application/zip",
-            "image/tiff",
-            "application/rtf"
-        };
-
-        // Act & Assert
-        FileExtension.SupportedSlackFileTypes.Should().BeEquivalentTo(expectedExtensions);
+        // Assign & Act & Assert
+        FileExtension.SupportedSlackFileTypes.Should().BeEquivalentTo(SupportedSlackFileFormats);
     }
 }

@@ -1,14 +1,7 @@
 ﻿using AutoFixture;
-using AutoFixture.AutoNSubstitute;
 using FluentAssertions;
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Requests;
-using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Gmail.v1;
-using Google.Apis.Util;
-using Google.Apis.Util.Store;
-using MailService.Infrastructure.EmailService;
 using MailService.Infrastructure.Factories;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
