@@ -12,11 +12,6 @@ namespace SN.UnitTests.SN.Application;
 
 public class MessageForwarderServiceTests : BaseTests
 {
-    public MessageForwarderServiceTests()
-    {
-        Fixture.Customize(new AutoNSubstituteCustomization());
-    }
-
     [Fact]
     public async Task WhenFetchFromGmail_AndNoEmails_ThenEarlyExitIsMade()
     {
