@@ -4,13 +4,18 @@ Forward gmail messages to a slack channel
 ### Installation
 
 ##### Setup Google Console
-Prerequisites: Gmail account
+Prerequisites: Gmail account + access to Google console
 1. Login to Google Console at https://console.cloud.google.com/
 2. Create new project
 3. Enable the Gmail Api for your new project under _Enabled APIs & Services_ menu.
-4. Click on _Credentials_ menu, then on _Create Credentials_. Choose _OAuth Client ID_. Pick a name and Save.
+4. Click on _Credentials_ menu, then on _Create Credentials_. Choose _OAuth Client ID_, then choose application type _desktop client_. Pick a name and Save.
 5. The created credential will be listed under Credentials menu. Click on it, and choose to download the credentials json.
-6. Rename the file to _googleCredentialsOAuth.json_ and move it to _SN.Console_ folder. 
+6. Rename the file to **googleCredentialsOAuth.json** and move it to _SN.Console_ folder **\***. 
+7. Click _OAuth consent_ to setup authorizations for the app, during setup add the following scopes for the Gmail-api in the Scopes setup step:
+   a. Non-sensitive scope: .../auth/gmail.addons.current.message.action
+   b. Restricted scope: https://mail.google.com/
+   c. Restricted scope: .../auth/gmail.modify
+8. On Test users setup step, add your email account to the list.
 
 ##### Setup Slack
 Prerequisites: Slack account
@@ -18,7 +23,7 @@ Prerequisites: Slack account
 2. Click on Basic information > Add features
    - Click to setup Bots. 
    - Click to setup Permissions. Copy token from _OAuth Tokens for Your Workspace_ section. Under _Scopes_ section, set the bot scopes: chat:write + files:write + remote_files:write
-3. Create a file named **secrets.json**. Contents of file as per below, fill in your details. 
+3. Create a file named **secrets.json**. Contents of file as per below, fill in your details **\***. 
    
 ```JSON
 [
@@ -37,4 +42,4 @@ Prerequisites: Slack account
 Doublecheck that the secrets.json and googleCredentials.json is in the SN.Console project.
 Build and run!
 
-Secrets filename can be changed in appsettings.
+___* filename can be changed in appsettings___
