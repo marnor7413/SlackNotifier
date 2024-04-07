@@ -8,10 +8,10 @@ namespace SN.Application.Services;
 
 public class GmailPayloadService : IGmailPayloadService
 {
-    private readonly IGmailFetchService gmailFetchService;
+    private readonly IGmailApiService gmailFetchService;
     private readonly IMessageTypeService messageTypeService;
 
-    public GmailPayloadService(IGmailFetchService gmailFetchService,
+    public GmailPayloadService(IGmailApiService gmailFetchService,
                 IMessageTypeService messageTypeService)
     {
         this.gmailFetchService = gmailFetchService;

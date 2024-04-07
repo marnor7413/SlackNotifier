@@ -5,7 +5,7 @@ using SN.Application.Interfaces;
 
 namespace SN.Infrastructure.Services.Gmail;
 
-public class GmailApiService : IGmailFetchService
+public class GmailApiService : IGmailApiService
 {
     private readonly IGmailServiceFactory gmailServiceFactory;
     private GmailService gmailService;
