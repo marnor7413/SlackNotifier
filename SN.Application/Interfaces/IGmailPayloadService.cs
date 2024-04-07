@@ -5,5 +5,7 @@ namespace SN.Application.Interfaces;
 
 public interface IGmailPayloadService
 {
-    Task<List<EmailInfo>> CheckForEmails();
+    IEnumerable<MessagePart> GetAttachmentData(IList<MessagePart> parts);
+    Task<List<FileAttachment>> GetAttachments(string messageId, IEnumerable<MessagePart> gmailAttachmentData);
+    string GetText(MessagePart payload);
 }

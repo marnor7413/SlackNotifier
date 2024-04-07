@@ -73,6 +73,7 @@ class Program
                     httpClient.BaseAddress = new Uri(baseUri);
                 });
 
+                services.AddScoped<IGmailInboxService, GmailInboxService>();
                 services.AddScoped<IMessageForwarderService, MessageForwarderService>();
                 services.AddScoped<IGmailApiService, GmailApiService>();
                 services.AddScoped<IGmailPayloadService, GmailPayloadService>();
