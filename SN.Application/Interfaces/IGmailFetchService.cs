@@ -2,8 +2,6 @@
 
 namespace MailService.Infrastructure.EmailServices
 {
-    public interface IGmailFetchService
-    {
-        Task<List<EmailInfo>> CheckForEmails();
-    }
+    Task<List<EmailInfo>> CheckForEmails();
+    Task<MessagePartBody> DownloadAttachment(string messageId, string attachmentId);
 }

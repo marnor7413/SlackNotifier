@@ -1,21 +1,18 @@
-﻿using Google.Apis.Gmail.v1;
-using Google.Apis.Gmail.v1.Data;
-using MailService.Infrastructure.EmailService;
-using MailService.Infrastructure.Extensions;
-using MailService.Infrastructure.Factories;
+﻿using Google.Apis.Gmail.v1.Data;
+using SN.Application.Dtos;
+using SN.Application.Interfaces;
 using SN.Core.ValueObjects;
 using System.Text;
 
-namespace SN.Infrastructure.Services.Gmail;
+namespace SN.Application.Services;
 
 public class GmailPayloadService : IGmailPayloadService
 {
-    private readonly IGmailServiceFactory gmailServiceFactoryOauth;
-    private GmailService service;
+    private readonly IGmailFetchService gmailFetchService;
 
-    public GmailPayloadService(IGmailServiceFactory gmailServiceFactoryOauth)
+    public GmailPayloadService(IGmailFetchService gmailFetchService)
     {
-        this.gmailServiceFactoryOauth = gmailServiceFactoryOauth;
+        this.gmailFetchService = gmailFetchService;
     }
 
     public IEnumerable<MessagePart> GetAttachmentData(IList<MessagePart> parts)
@@ -26,16 +23,13 @@ public class GmailPayloadService : IGmailPayloadService
 
     public async Task<List<FileAttachment>> GetAttachments(string messageId, IEnumerable<MessagePart> gmailAttachmentData)
     {
-        service = await gmailServiceFactoryOauth.GetService();
         var emailAttachments = new List<FileAttachment>();
         foreach (var item in gmailAttachmentData)
         {
             var fileType = FileExtension.FromMimeType(new MimeType(item.MimeType));
 
-            var attId = item.Body.AttachmentId;
-            var attachPart = await service.Users.Messages.Attachments
-                .Get(GmailServiceFactory.AuthenticatedUser, messageId, attId)
-                .ExecuteAsync();
+            var attachmentId = item.Body.AttachmentId;
+            var attachPart = await gmailFetchService.DownloadAttachment(messageId, attachmentId);
             var attachment = new FileAttachment(item.Filename, fileType.Name, "", attachPart.Data);
             if (attachment.Validate())
             {

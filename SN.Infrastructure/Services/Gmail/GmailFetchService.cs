@@ -164,4 +164,11 @@ public class GmailFetchService : IGmailFetchService
             .Modify(modifyRequest, GmailServiceFactory.AuthenticatedUser, emailId)
             .ExecuteAsync();
     }
+
+    public async Task<MessagePartBody> DownloadAttachment(string messageId, string attachmentId)
+    {
+        return await gmailService.Users.Messages.Attachments
+                 .Get(GmailServiceFactory.AuthenticatedUser, messageId, attachmentId)
+                 .ExecuteAsync();
+    }
 }

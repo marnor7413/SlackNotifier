@@ -2,8 +2,5 @@
 
 namespace MailService.Infrastructure.SlackServices
 {
-    public interface ISlackService
-    {
-        Task SendMessage(List<EmailInfo> message);
-    }
+    Task SendMessage(List<EmailInfo> message);
 }

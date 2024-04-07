@@ -1,8 +1,11 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using Google.Apis.Gmail.v1.Data;
-using MailService.Infrastructure.Factories;
-using SN.Infrastructure.Services.Gmail;
+using NSubstitute;
+using SN.Application.Dtos;
+using SN.Application.Interfaces;
+using SN.Application.Services;
+using SN.Core.ValueObjects;
 
 namespace SN.UnitTests.SN.Infrastructure;
 
@@ -57,8 +60,8 @@ public class GmailPayloadServiceTests : BaseTests
         list.AddRange(new[] { correct, emptyFilename, filenameIsNull }.Concat(randomIncorrect));
 
 
-        var factory = Fixture.Freeze<IGmailServiceFactory>();
-        var SUT = new GmailPayloadService(factory);
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var SUT = new GmailPayloadService(fetchService);
 
         // Act
         var result = SUT.GetAttachmentData(list);
@@ -79,8 +82,8 @@ public class GmailPayloadServiceTests : BaseTests
                 .Create())
             .Create();
         
-        var factory = Fixture.Freeze<IGmailServiceFactory>();
-        var SUT = new GmailPayloadService(factory);
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var SUT = new GmailPayloadService(fetchService);
         var expected = "<<???>>";
 
         // Act
@@ -102,8 +105,8 @@ public class GmailPayloadServiceTests : BaseTests
                 .Create())
             .Create();
 
-        var factory = Fixture.Freeze<IGmailServiceFactory>();
-        var SUT = new GmailPayloadService(factory);
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var SUT = new GmailPayloadService(fetchService);
 
         // Act
         var result = SUT.GetText(payload);
@@ -127,8 +130,8 @@ public class GmailPayloadServiceTests : BaseTests
                 .Create())
             .Create();
 
-        var factory = Fixture.Freeze<IGmailServiceFactory>();
-        var SUT = new GmailPayloadService(factory);
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var SUT = new GmailPayloadService(fetchService);
 
         // Act
         var result = SUT.GetText(payload);
@@ -146,11 +149,131 @@ public class GmailPayloadServiceTests : BaseTests
             .Without(x => x.Body)
             .Create();
 
-        var factory = Fixture.Freeze<IGmailServiceFactory>();
-        var SUT = new GmailPayloadService(factory);
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var SUT = new GmailPayloadService(fetchService);
 
         // Act
         var result = SUT.GetText(payload);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAttachments_WhenAttachmentsAreDownloaded_CorrectDataIsPassedFromMethod()
+    {
+        // Assign
+        var jpegAttachmentToDownload = Fixture.Build<MessagePart>()
+            .Without(x => x.Parts)
+            .With(x => x.MimeType, MimeType.ImageJpeg.Name)
+            .Create();
+        var pdfAttachmentToDownload = Fixture.Build<MessagePart>()
+            .Without(x => x.Parts)
+            .With(x => x.MimeType, MimeType.Pdf.Name)
+            .Create();
+        var attachmentsToDownload = new List<MessagePart>() { jpegAttachmentToDownload, pdfAttachmentToDownload };
+
+        var jpegAttachment = Fixture.Create<MessagePartBody>();
+        var pdfAttachment = Fixture.Create<MessagePartBody>();
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(jpegAttachment, pdfAttachment);
+        var SUT = new GmailPayloadService(fetchService);
+
+        var expected = new List<FileAttachment>()
+        {
+            new FileAttachment(jpegAttachmentToDownload.Filename, FileExtension.Jpeg.Name, string.Empty, jpegAttachment.Data),
+            new FileAttachment(pdfAttachmentToDownload.Filename, FileExtension.Pdf.Name, string.Empty, pdfAttachment.Data)
+        };
+
+        // Act
+        var result = await SUT.GetAttachments(Fixture.Create<string>(), attachmentsToDownload);
+
+        // Assert
+        result.Should().BeEquivalentTo(expected);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    public async Task GetAttachments_WhenDownloadedAttachmentContainsNoData_NothingIsPasseFromMethod(string fileData)
+    {
+        // Assign
+        var jpegAttachmentToDownload = Fixture.Build<MessagePart>()
+            .Without(x => x.Parts)
+            .With(x => x.MimeType, MimeType.ImageJpeg.Name)
+            .Create();
+        var attachmentsToDownload = new List<MessagePart>() { jpegAttachmentToDownload};
+
+        var jpegAttachment = Fixture.Build<MessagePartBody>()
+            .With(x => x.Data, fileData)
+            .Create();
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(jpegAttachment);
+
+        var SUT = new GmailPayloadService(fetchService);
+
+        // Act
+        var result = await SUT.GetAttachments(Fixture.Create<string>(), attachmentsToDownload);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    [InlineData("AnyNotSupportedFileType")]
+    public async Task GetAttachments_WhenFileTypeIsNotSupported_NothingIsPasseFromMethod(string fileType)
+    {
+        // Assign
+        var jpegAttachmentToDownload = Fixture.Build<MessagePart>()
+            .Without(x => x.Parts)
+            .With(x => x.MimeType, fileType)
+            .Create();
+        var attachmentsToDownload = new List<MessagePart>() { jpegAttachmentToDownload };
+
+        var jpegAttachment = Fixture.Build<MessagePartBody>()
+            .Create();
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(jpegAttachment);
+
+        var SUT = new GmailPayloadService(fetchService);
+
+        // Act
+        var result = await SUT.GetAttachments(Fixture.Create<string>(), attachmentsToDownload);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    public async Task GetAttachments_WhenFilenameIsMissing_NothingIsPasseFromMethod(string filename)
+    {
+        // Assign
+        var jpegAttachmentToDownload = Fixture.Build<MessagePart>()
+            .Without(x => x.Parts)
+            .With(x => x.Filename, filename)
+            .Create();
+        var attachmentsToDownload = new List<MessagePart>() { jpegAttachmentToDownload };
+
+        var jpegAttachment = Fixture.Build<MessagePartBody>()
+            .Create();
+        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(jpegAttachment);
+
+        var SUT = new GmailPayloadService(fetchService);
+
+        // Act
+        var result = await SUT.GetAttachments(Fixture.Create<string>(), attachmentsToDownload);
 
         // Assert
         result.Should().BeEmpty();
