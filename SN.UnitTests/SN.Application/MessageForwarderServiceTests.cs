@@ -14,33 +14,25 @@ public class MessageForwarderServiceTests : BaseTests
     public async Task WhenFetchFromGmail_AndNoEmails_ThenEarlyExitIsMade()
     {
         // Assign
-        var gmailService = Fixture.Freeze<IGmailFetchService>();
-        gmailService.CheckForEmails()
-            .Returns(Enumerable.Empty<EmailInfo>().ToList());
-
+        var gmailInboxService = SetupInboxService(Enumerable.Empty<EmailInfo>().ToList());
         var slackService = Fixture.Freeze<ISlackService>();
-
-        var SUT = new MessageForwarderService(gmailService, slackService);
+        var SUT = new MessageForwarderService(gmailInboxService, slackService);
 
         // Act
         var result = await SUT.Run();
 
         // Assert
         result.Should().BeFalse();
-        await slackService.Received(0).SendMessage(Arg.Any<List<EmailInfo>>());   
+        await slackService.Received(0).SendMessage(Arg.Any<List<EmailInfo>>());
     }
 
     [Fact]
     public async Task WhenFetchFromGmail_AndNEmailsExist_ThenSlackServiceIsCalledAndTrueIsReturned()
     {
         // Assign
-        var gmailService = Fixture.Freeze<IGmailFetchService>();
-        gmailService.CheckForEmails()
-            .Returns(Fixture.CreateMany<EmailInfo>(1).ToList());
-
+        var gmailInboxService = SetupInboxService(Fixture.CreateMany<EmailInfo>(1).ToList());
         var slackService = Fixture.Freeze<ISlackService>();
-
-        var SUT = new MessageForwarderService(gmailService, slackService);
+        var SUT = new MessageForwarderService(gmailInboxService, slackService);
 
         // Act
         var result = await SUT.Run();
@@ -68,9 +60,7 @@ public class MessageForwarderServiceTests : BaseTests
         var text = new StringBuilder();
         foreach (string s in unexpecedStrings) { text.AppendLine(s); }
 
-        var gmailService = Fixture.Freeze<IGmailFetchService>();
-        gmailService.CheckForEmails()
-            .Returns(Fixture.Build<EmailInfo>()
+        var gmailInboxService = SetupInboxService(Fixture.Build<EmailInfo>()
                 .With(x => x.PlainTextBody, text.ToString())
                 .CreateMany(1)
             .ToList());
@@ -79,7 +69,7 @@ public class MessageForwarderServiceTests : BaseTests
         List<EmailInfo> capturedMessages = null;
         await slackService.SendMessage(Arg.Do<List<EmailInfo>>(x => capturedMessages = x));
 
-        var SUT = new MessageForwarderService(gmailService, slackService);
+        var SUT = new MessageForwarderService(gmailInboxService, slackService);
 
         // Act
         await SUT.Run();
@@ -91,6 +81,15 @@ public class MessageForwarderServiceTests : BaseTests
         CountOccurenciesOfTextStringsInText(unexpecedStrings, capturedMessages)
             .Should()
             .Be(0);
+    }
+
+    private IGmailInboxService SetupInboxService(List<EmailInfo> emailInfos)
+    {
+        var gmailInboxService = Fixture.Freeze<IGmailInboxService>();
+        gmailInboxService.CheckForEmails()
+            .Returns(emailInfos);
+
+        return gmailInboxService;
     }
 
     private static int CountOccurenciesOfTextStringsInText(List<string> unexpecedStrings, List<EmailInfo> capturedMessages)

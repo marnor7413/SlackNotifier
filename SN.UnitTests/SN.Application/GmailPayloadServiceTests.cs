@@ -60,7 +60,7 @@ public class GmailPayloadServiceTests : BaseTests
         list.AddRange(new[] { correct, emptyFilename, filenameIsNull }.Concat(randomIncorrect));
 
 
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         var SUT = new GmailPayloadService(fetchService);
 
         // Act
@@ -82,7 +82,7 @@ public class GmailPayloadServiceTests : BaseTests
                 .Create())
             .Create();
 
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         var SUT = new GmailPayloadService(fetchService);
         var expected = "<<???>>";
 
@@ -105,7 +105,7 @@ public class GmailPayloadServiceTests : BaseTests
                 .Create())
             .Create();
 
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         var SUT = new GmailPayloadService(fetchService);
 
         // Act
@@ -130,7 +130,7 @@ public class GmailPayloadServiceTests : BaseTests
                 .Create())
             .Create();
 
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         var SUT = new GmailPayloadService(fetchService);
 
         // Act
@@ -149,7 +149,7 @@ public class GmailPayloadServiceTests : BaseTests
             .Without(x => x.Body)
             .Create();
 
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         var SUT = new GmailPayloadService(fetchService);
 
         // Act
@@ -175,7 +175,7 @@ public class GmailPayloadServiceTests : BaseTests
 
         var jpegAttachment = Fixture.Create<MessagePartBody>();
         var pdfAttachment = Fixture.Create<MessagePartBody>();
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
             .Returns(jpegAttachment, pdfAttachment);
         var SUT = new GmailPayloadService(fetchService);
@@ -209,7 +209,7 @@ public class GmailPayloadServiceTests : BaseTests
         var jpegAttachment = Fixture.Build<MessagePartBody>()
             .With(x => x.Data, fileData)
             .Create();
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
             .Returns(jpegAttachment);
 
@@ -238,7 +238,7 @@ public class GmailPayloadServiceTests : BaseTests
 
         var jpegAttachment = Fixture.Build<MessagePartBody>()
             .Create();
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
             .Returns(jpegAttachment);
 
@@ -266,7 +266,7 @@ public class GmailPayloadServiceTests : BaseTests
 
         var jpegAttachment = Fixture.Build<MessagePartBody>()
             .Create();
-        var fetchService = Fixture.Freeze<IGmailFetchService>();
+        var fetchService = Fixture.Freeze<IGmailApiService>();
         fetchService.DownloadAttachment(Arg.Any<string>(), Arg.Any<string>())
             .Returns(jpegAttachment);
 

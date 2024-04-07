@@ -6,18 +6,18 @@ namespace SN.Application.Services;
 
 public class MessageForwarderService : IMessageForwarderService
 {
-    private readonly IGmailApiService _gmailService;
-    private readonly ISlackService _slackService;
+    private readonly IGmailInboxService gmailInboxService;
+    private readonly ISlackService slackService;
 
-    public MessageForwarderService(IGmailApiService gmailService, ISlackService slackService)
+    public MessageForwarderService(IGmailInboxService gmailInboxService, ISlackService slackService)
     {
-        _gmailService = gmailService;
-        _slackService = slackService;
+        this.gmailInboxService = gmailInboxService;
+        this.slackService = slackService;
     }
 
     public async Task<bool> Run()
     {
-        var emails = await _gmailService.CheckForEmails();
+        var emails = await gmailInboxService.CheckForEmails();
 
         if (!emails.Any())
         {
@@ -28,7 +28,7 @@ public class MessageForwarderService : IMessageForwarderService
 
         var cleanedText = RemoveAvastAd(emails);
 
-        await _slackService.SendMessage(cleanedText.OrderBy(x => x.Id).ToList());
+        await slackService.SendMessage(cleanedText.OrderBy(x => x.Id).ToList());
         Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] {emails.Count} email(s) forwarded to Slack.S");
 
         return true;

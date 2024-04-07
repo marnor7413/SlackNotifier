@@ -28,7 +28,7 @@ Prerequisites: Slack account
 ```JSON
 [
   {
-    "Subject": "yourServiceName",
+    "Subject": "SlackService",
     "Token": "yourWorkspaceOAuthTokenToken",
     "Destination": "channelId"
   }

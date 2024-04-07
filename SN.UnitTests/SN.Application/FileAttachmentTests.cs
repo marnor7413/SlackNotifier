@@ -1,9 +1,6 @@
 ﻿using AutoFixture;
 using FluentAssertions;
-using Google.Apis.Gmail.v1.Data;
-using MailService.Infrastructure.Factories;
 using SN.Application.Dtos;
-using SN.Infrastructure.Services.Gmail;
 using System.Text;
 
 namespace SN.UnitTests.SN.Application;

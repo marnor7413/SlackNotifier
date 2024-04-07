@@ -1,38 +1,35 @@
-﻿using MailService.Infrastructure.Extensions;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using SN.Application.Dtos;
+using SN.Application.Extensions;
 using SN.Application.Interfaces;
 using SN.Application.Options;
 using System.Net;
 
-namespace SN.Infrastructure.Services.Slack;
+namespace SN.Application.Services;
 
 public class SlackService : ISlackService
 {
-    private readonly SecretsOptions _options;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ISlackApiService slackApiService;
+    private readonly SecretsOptions options;
 
-    private enum Operation 
+    private enum Operation
     {
         Message,
         File
     }
 
-    public SlackService(IOptions<List<SecretsOptions>> options, IHttpClientFactory httpClientFactory)
+    public SlackService(ISlackApiService slackApiService, IOptions<List<SecretsOptions>> options)
     {
-        _options = options.Value.Single(x => x.Subject == nameof(SlackService));
-        _httpClientFactory = httpClientFactory;
+        this.slackApiService = slackApiService;
+        this.options = options.Value.Single(x => x.Subject == nameof(SlackService)); ;
     }
 
     public async Task SendMessage(List<EmailInfo> messages)
     {
-        var client = _httpClientFactory.CreateClient(nameof(SlackService));
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.Token}");
-
         foreach (var message in messages)
         {
-            var requestBody = message.ToSlackFormattedStringContent(_options.Destination);
-            var sendMessageResponse = await client.PostAsync(SlackApiEndpoints.PostMessage, requestBody);
+            var requestBody = message.ToSlackFormattedStringContent(options.Destination);
+            var sendMessageResponse = await slackApiService.SendMessage(requestBody);
             var sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
             LogResult(sendMessageResponse.StatusCode, Operation.Message, sendMessageResponse, message.From, string.Empty);
 
@@ -43,7 +40,7 @@ public class SlackService : ISlackService
                 formData.Add(fileContent, "file", item.FileName);
                 AddParametersToFormDataObject(sendMessageResponseInfo, item, formData);
 
-                var uploadFileResponse = await client.PostAsync(SlackApiEndpoints.UploadFile, formData);
+                var uploadFileResponse = await slackApiService.UploadFile(formData);
                 var uploadFileResponseInfo = await uploadFileResponse.ExtractResponseDataFromHttpResponseMessage();
                 LogResult(uploadFileResponse.StatusCode, Operation.File, uploadFileResponse, message.From, item.FileName);
             }
@@ -56,7 +53,7 @@ public class SlackService : ISlackService
         {
             new KeyValuePair<string, string>("filename", item.FileName),
             new KeyValuePair<string, string>("filetype", item.fileType),
-            new KeyValuePair<string, string>("channels", _options.Destination),
+            new KeyValuePair<string, string>("channels", options.Destination),
             new KeyValuePair<string, string>("initial_comment", item.FileName),
             new KeyValuePair<string, string>("title", "Bifogad fil"),
             new KeyValuePair<string, string>("thread_ts", (string)responseObject.ts)

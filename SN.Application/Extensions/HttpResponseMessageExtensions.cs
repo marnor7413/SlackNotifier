@@ -1,4 +1,4 @@
-﻿namespace MailService.Infrastructure.Extensions;
+﻿namespace SN.Application.Extensions;
 
 static class HttpResponseMessageExtensions
 {

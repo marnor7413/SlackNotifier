@@ -65,7 +65,7 @@ class Program
                     httpClient.BaseAddress = new Uri(baseUri);
                 });
 
-                services.AddHttpClient<SlackService>((httpClient) =>
+                services.AddHttpClient<SlackApiService>((httpClient) =>
                 {
                     var baseUri = configuration.GetSection(SlackBaseUriKey).Value;
                     httpClient.Timeout = TimeSpan.FromSeconds(30);
@@ -82,6 +82,7 @@ class Program
                 services.AddScoped<IGmailServiceFactory, GmailServiceFactory>();
                 services.AddScoped<IMessageTypeService, MessageTypeService>();
                 services.AddScoped<ISlackService, SlackService>();
+                services.AddScoped<ISlackApiService, SlackApiService>();
             });
 
     private static void DoWork(object state)
