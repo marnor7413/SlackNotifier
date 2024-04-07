@@ -1,6 +1,6 @@
 ﻿using Google.Apis.Gmail.v1.Data;
 
-namespace MailService.Infrastructure.Extensions;
+namespace SN.Application.Interfaces;
 
 public interface IMessageTypeService
 {

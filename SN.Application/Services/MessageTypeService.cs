@@ -1,7 +1,8 @@
 ﻿using Google.Apis.Gmail.v1.Data;
+using SN.Application.Interfaces;
 using SN.Core.ValueObjects;
 
-namespace MailService.Infrastructure.Extensions;
+namespace SN.Application.Services;
 
 public class MessageTypeService : IMessageTypeService
 {

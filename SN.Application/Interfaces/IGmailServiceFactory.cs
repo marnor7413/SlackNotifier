@@ -1,6 +1,6 @@
 ﻿using Google.Apis.Gmail.v1;
 
-namespace MailService.Infrastructure.Factories;
+namespace SN.Application.Interfaces;
 
 public interface IGmailServiceFactory
 {

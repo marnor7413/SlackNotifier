@@ -1,8 +1,8 @@
 ﻿using AutoFixture;
 using FluentAssertions;
-using MailService.Infrastructure.EmailService;
 using System.Text.Json.Nodes;
 using System.Text;
+using SN.Application.Dtos;
 
 namespace SN.UnitTests.SN.Application;
 

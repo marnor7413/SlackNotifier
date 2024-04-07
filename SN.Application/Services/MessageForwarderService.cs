@@ -1,10 +1,8 @@
-﻿using MailService.Application.Interfaces;
-using MailService.Infrastructure.EmailService;
-using MailService.Infrastructure.EmailServices;
-using MailService.Infrastructure.SlackServices;
+﻿using SN.Application.Dtos;
+using SN.Application.Interfaces;
 using System.Text.RegularExpressions;
 
-namespace MailService.Application.Services;
+namespace SN.Application.Services;
 
 public class MessageForwarderService : IMessageForwarderService
 {
@@ -21,7 +19,7 @@ public class MessageForwarderService : IMessageForwarderService
     {
         var emails = await _gmailService.CheckForEmails();
 
-        if (!emails.Any()) 
+        if (!emails.Any())
         {
             Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] No new emails found.");
 
@@ -29,13 +27,13 @@ public class MessageForwarderService : IMessageForwarderService
         }
 
         var cleanedText = RemoveAvastAd(emails);
-        
+
         await _slackService.SendMessage(cleanedText.OrderBy(x => x.Id).ToList());
         Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] {emails.Count} email(s) forwarded to Slack.S");
 
         return true;
     }
-   
+
     private static List<EmailInfo> RemoveAvastAd(List<EmailInfo> emails)
     {
         var avastLinkPattern = @"<https://www.avast.com/sig-email?.*?>";

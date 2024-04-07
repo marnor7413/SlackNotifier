@@ -1,4 +1,4 @@
-﻿namespace MailService.Application.Interfaces;
+﻿namespace SN.Application.Interfaces;
 
 public interface IMessageForwarderService
 {

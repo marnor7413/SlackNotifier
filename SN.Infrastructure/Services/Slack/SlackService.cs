@@ -1,8 +1,8 @@
-﻿using MailService.ConsoleApp.Configuration;
-using MailService.Infrastructure.EmailService;
-using MailService.Infrastructure.Extensions;
-using MailService.Infrastructure.SlackServices;
+﻿using MailService.Infrastructure.Extensions;
 using Microsoft.Extensions.Options;
+using SN.Application.Dtos;
+using SN.Application.Interfaces;
+using SN.Application.Options;
 using System.Net;
 
 namespace SN.Infrastructure.Services.Slack;

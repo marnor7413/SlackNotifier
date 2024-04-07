@@ -1,6 +1,6 @@
-﻿using MailService.ConsoleApp.Configuration;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using SN.Application.Options;
 
 namespace MailService.ConsoleApp.Extensions;
 

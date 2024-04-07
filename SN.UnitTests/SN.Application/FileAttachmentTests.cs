@@ -1,8 +1,8 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using Google.Apis.Gmail.v1.Data;
-using MailService.Infrastructure.EmailService;
 using MailService.Infrastructure.Factories;
+using SN.Application.Dtos;
 using SN.Infrastructure.Services.Gmail;
 using System.Text;
 

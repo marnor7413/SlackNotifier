@@ -1,4 +1,4 @@
-﻿namespace MailService.Infrastructure.EmailService;
+﻿namespace SN.Application.Dtos;
 
 public record FileAttachment(string FileName, string fileType, string Description, string Data)
 {

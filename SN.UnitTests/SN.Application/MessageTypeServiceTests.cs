@@ -1,7 +1,7 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using Google.Apis.Gmail.v1.Data;
-using MailService.Infrastructure.Extensions;
+using SN.Application.Services;
 
 namespace SN.UnitTests.SN.Application;
 

@@ -1,7 +1,7 @@
 ﻿using Google.Apis.Gmail.v1.Data;
-using MailService.Infrastructure.EmailService;
+using SN.Application.Dtos;
 
-namespace MailService.Infrastructure.Extensions;
+namespace SN.Application.Interfaces;
 
 public interface IGmailPayloadService
 {

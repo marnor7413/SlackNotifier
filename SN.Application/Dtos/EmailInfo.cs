@@ -2,9 +2,9 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace MailService.Infrastructure.EmailService;
+namespace SN.Application.Dtos;
 
-public record EmailInfo(int Id, string Date, string From, string Subject, string PlainTextBody, string HtmlBody) 
+public record EmailInfo(int Id, string Date, string From, string Subject, string PlainTextBody, string HtmlBody)
 {
     public List<FileAttachment> FileAttachments { get; init; } = new List<FileAttachment>();
 

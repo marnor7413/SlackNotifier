@@ -1,4 +1,4 @@
-﻿namespace MailService.ConsoleApp.Configuration;
+﻿namespace SN.Application.Options;
 
 public class SecretsOptions
 {

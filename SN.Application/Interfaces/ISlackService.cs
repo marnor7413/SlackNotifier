@@ -1,6 +1,8 @@
-﻿using MailService.Infrastructure.EmailService;
+﻿using SN.Application.Dtos;
 
-namespace MailService.Infrastructure.SlackServices
+namespace SN.Application.Interfaces;
+
+public interface ISlackService
 {
     Task SendMessage(List<EmailInfo> message);
 }

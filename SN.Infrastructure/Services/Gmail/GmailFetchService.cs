@@ -1,10 +1,9 @@
 ﻿using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
-using MailService.Infrastructure.EmailService;
 using MailService.Infrastructure.Factories;
-using MailService.Infrastructure.EmailServices;
 using SN.Core.ValueObjects;
-using MailService.Infrastructure.Extensions;
+using SN.Application.Interfaces;
+using SN.Application.Dtos;
 
 namespace SN.Infrastructure.Services.Gmail;
 

@@ -1,12 +1,10 @@
 ﻿using AutoFixture;
 using FluentAssertions;
-using MailService.Application.Services;
-using MailService.Infrastructure.EmailServices;
-using MailService.Infrastructure.SlackServices;
-using AutoFixture.AutoNSubstitute;
 using NSubstitute;
-using MailService.Infrastructure.EmailService;
 using System.Text;
+using SN.Application.Interfaces;
+using SN.Application.Dtos;
+using SN.Application.Services;
 
 namespace SN.UnitTests.SN.Application;
 
