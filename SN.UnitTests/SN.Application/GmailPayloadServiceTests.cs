@@ -7,7 +7,7 @@ using SN.Application.Interfaces;
 using SN.Application.Services;
 using SN.Core.ValueObjects;
 
-namespace SN.UnitTests.SN.Infrastructure;
+namespace SN.UnitTests.SN.Application;
 
 public class GmailPayloadServiceTests : BaseTests
 {
@@ -81,7 +81,7 @@ public class GmailPayloadServiceTests : BaseTests
                 .With(x => x.Data, base64UrlEncodedData)
                 .Create())
             .Create();
-        
+
         var fetchService = Fixture.Freeze<IGmailFetchService>();
         var SUT = new GmailPayloadService(fetchService);
         var expected = "<<???>>";
@@ -204,7 +204,7 @@ public class GmailPayloadServiceTests : BaseTests
             .Without(x => x.Parts)
             .With(x => x.MimeType, MimeType.ImageJpeg.Name)
             .Create();
-        var attachmentsToDownload = new List<MessagePart>() { jpegAttachmentToDownload};
+        var attachmentsToDownload = new List<MessagePart>() { jpegAttachmentToDownload };
 
         var jpegAttachment = Fixture.Build<MessagePartBody>()
             .With(x => x.Data, fileData)
