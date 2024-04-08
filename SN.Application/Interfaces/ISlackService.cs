@@ -4,5 +4,5 @@ namespace SN.Application.Interfaces;
 
 public interface ISlackService
 {
-    Task SendMessage(List<EmailInfo> message);
+    Task<bool> SendMessage(List<EmailInfo> message);
 }

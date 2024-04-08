@@ -24,13 +24,22 @@ public class SlackService : ISlackService
         this.options = options.Value.Single(x => x.Subject == nameof(SlackService)); ;
     }
 
-    public async Task SendMessage(List<EmailInfo> messages)
+    public async Task<bool> SendMessage(List<EmailInfo> messages)
     {
         foreach (var message in messages)
         {
             var requestBody = message.ToSlackFormattedStringContent(options.Destination);
-            var sendMessageResponse = await slackApiService.SendMessage(requestBody);
-            var sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
+            HttpResponseMessage sendMessageResponse;
+            dynamic sendMessageResponseInfo;
+            try
+            {
+                sendMessageResponse = await slackApiService.SendMessage(requestBody);
+                sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
             LogResult(sendMessageResponse.StatusCode, Operation.Message, sendMessageResponse, message.From, string.Empty);
 
             foreach (var item in message.FileAttachments)
@@ -40,11 +49,20 @@ public class SlackService : ISlackService
                 formData.Add(fileContent, "file", item.FileName);
                 AddParametersToFormDataObject(sendMessageResponseInfo, item, formData);
 
-                var uploadFileResponse = await slackApiService.UploadFile(formData);
-                var uploadFileResponseInfo = await uploadFileResponse.ExtractResponseDataFromHttpResponseMessage();
+                HttpResponseMessage uploadFileResponse;
+                try
+                {
+                    uploadFileResponse = await slackApiService.UploadFile(formData);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
                 LogResult(uploadFileResponse.StatusCode, Operation.File, uploadFileResponse, message.From, item.FileName);
             }
         }
+
+        return true;
     }
 
     private void AddParametersToFormDataObject(dynamic responseObject, FileAttachment item, MultipartFormDataContent formData)
