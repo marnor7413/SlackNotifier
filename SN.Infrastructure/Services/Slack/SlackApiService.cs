@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using SN.Application.Interfaces;
 using SN.Application.Options;
+using SN.Application.Services;
 
 namespace SN.Infrastructure.Services.Slack;
 
@@ -11,7 +12,7 @@ public class SlackApiService : ISlackApiService
 
     public SlackApiService(IOptions<List<SecretsOptions>> options, IHttpClientFactory httpClientFactory)
     {
-        this.options = options.Value.Single(x => x.Subject == nameof(SlackApiService)); ;
+        this.options = options.Value.Single(x => x.Subject == nameof(SlackService)); ;
         this.httpClientFactory = httpClientFactory;
     }
 
@@ -26,6 +27,7 @@ public class SlackApiService : ISlackApiService
     public async Task<HttpResponseMessage> UploadFile(MultipartFormDataContent formData)
     {
         var client = httpClientFactory.CreateClient(nameof(SlackApiService));
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.Token}");
 
         return await client.PostAsync(SlackApiEndpoints.UploadFile, formData);
     }

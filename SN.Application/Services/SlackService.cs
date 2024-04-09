@@ -53,6 +53,7 @@ public class SlackService : ISlackService
                 try
                 {
                     uploadFileResponse = await slackApiService.UploadFile(formData);
+                    var uploadFileResponseInfo = await uploadFileResponse.ExtractResponseDataFromHttpResponseMessage();
                 }
                 catch (Exception)
                 {
