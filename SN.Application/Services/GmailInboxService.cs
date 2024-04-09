@@ -104,13 +104,31 @@ public class GmailInboxService : IGmailInboxService
                     gmailPayloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
                     gmailPayloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
-            else if (messageTypeService.IsMultiPartMixed(message))
+            else if (HasAttachmentOnly(message))
             {
                 var textObject = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name);
                 email = email.SetMessageBody(
                     gmailPayloadService.GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
                     gmailPayloadService.GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
             }
+            else if (HasAttachmentAndEmbeddedImage(message))
+            {
+                //TODO: add support to download embedded files
+                var textObject = message.Payload.Parts
+                    .SingleOrDefault(x => x.MimeType == MimeType.MultiPartRelated.Name)?.Parts
+                    .SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name);
+                email = email.SetMessageBody(
+                    gmailPayloadService.GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
+                    gmailPayloadService.GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
+            }
+            else if (HasEmbeddedFileInMessageBodyOnly(message))
+            {
+                var textObject = message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.MultiPartAlternative.Name);
+                email = email.SetMessageBody(
+                    gmailPayloadService.GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
+                    gmailPayloadService.GetText(textObject.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
+            }
+            
 
             var gmailAttachmentData = gmailPayloadService.GetAttachmentData(message.Payload.Parts);
             if (gmailAttachmentData.Any())
@@ -123,4 +141,8 @@ public class GmailInboxService : IGmailInboxService
 
         return null;
     }
+
+    private bool HasAttachmentOnly(Message message) => messageTypeService.IsMultiPartMixed(message) && !messageTypeService.IsMultiPartMixedAndMultiPartRelated(message);
+    private bool HasAttachmentAndEmbeddedImage(Message message) => messageTypeService.IsMultiPartMixedAndMultiPartRelated(message);
+    private bool HasEmbeddedFileInMessageBodyOnly(Message message) => messageTypeService.IsMultiPartRelated(message);
 }

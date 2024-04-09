@@ -28,6 +28,18 @@ public class MessageTypeService : IMessageTypeService
         return HasMimeType(message, MimeType.Text.Name);
     }
 
+    public bool IsMultiPartRelated(Message message)
+    {
+        return HasMimeType(message, MimeType.MultiPartRelated.Name) &&
+            HasSubMimeType(message, MimeType.MultiPartAlternative.Name);
+    }
+
+    public bool IsMultiPartMixedAndMultiPartRelated(Message message)
+    {
+        return HasMimeType(message, MimeType.MultiPartMixed.Name) &&
+            HasSubMimeType(message, MimeType.MultiPartRelated.Name);
+    }
+
     private bool HasMimeType(Message message, string mimeType)
         => message.Payload.MimeType == mimeType;
 

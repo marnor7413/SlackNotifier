@@ -23,4 +23,5 @@ public record MimeType(string Name)
     public static MimeType Zip { get; } = new("application/zip"); 
     public static MimeType Tiff { get; } = new("image/tiff"); 
     public static MimeType RichText { get; } = new("application/rtf"); 
+    public static MimeType MultiPartRelated { get; } = new("multipart/related"); 
 }
