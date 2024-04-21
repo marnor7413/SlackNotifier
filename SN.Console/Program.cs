@@ -1,14 +1,12 @@
-﻿using MailService.Application.Interfaces;
-using MailService.Application.Services;
-using MailService.ConsoleApp.Configuration;
-using MailService.ConsoleApp.Extensions;
-using MailService.Infrastructure.EmailServices;
+﻿using MailService.ConsoleApp.Extensions;
 using MailService.Infrastructure.Factories;
-using MailService.Infrastructure.SlackServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using SN.Application.Interfaces;
+using SN.Application.Options;
+using SN.Application.Services;
 using SN.Infrastructure.Services.Gmail;
 using SN.Infrastructure.Services.Slack;
 
@@ -67,7 +65,7 @@ class Program
                     httpClient.BaseAddress = new Uri(baseUri);
                 });
 
-                services.AddHttpClient<SlackService>((httpClient) =>
+                services.AddHttpClient<SlackApiService>((httpClient) =>
                 {
                     var baseUri = configuration.GetSection(SlackBaseUriKey).Value;
                     httpClient.Timeout = TimeSpan.FromSeconds(30);
@@ -75,10 +73,16 @@ class Program
                     httpClient.BaseAddress = new Uri(baseUri);
                 });
 
+                services.AddScoped<IGmailInboxService, GmailInboxService>();
                 services.AddScoped<IMessageForwarderService, MessageForwarderService>();
                 services.AddScoped<IGmailApiService, GmailApiService>();
-                services.AddScoped<IGmailClientFactoryOauth, GmailClientFactoryOauth>();
+                services.AddScoped<IGmailPayloadService, GmailPayloadService>();
+                services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+                services.AddScoped<IIOService, IOService>();
+                services.AddScoped<IGmailServiceFactory, GmailServiceFactory>();
+                services.AddScoped<IMessageTypeService, MessageTypeService>();
                 services.AddScoped<ISlackService, SlackService>();
+                services.AddScoped<ISlackApiService, SlackApiService>();
             });
 
     private static void DoWork(object state)
