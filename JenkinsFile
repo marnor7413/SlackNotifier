@@ -7,7 +7,7 @@ pipeline {
     stages {
 		stage ('Git Checkout') {
 			steps {
-			  git branch: 'jenkinsbuildpipeline', url: 'https://github.com/marnor7413/SlackNotifier'
+			  git branch: 'develop', url: 'https://github.com/marnor7413/SlackNotifier'
 			}
 		}
         stage('Restore') {
