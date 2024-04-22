@@ -5,11 +5,11 @@ pipeline {
     }
 	
     stages {
-		stage ('Git Checkout') {
-			steps {
-			  git branch: 'develop', url: 'https://github.com/marnor7413/SlackNotifier'
-			}
-		}
+		//stage ('Git Checkout') {
+		//	steps {
+		//	  git branch: 'develop', url: 'https://github.com/marnor7413/SlackNotifier'
+		//	}
+		//}
         stage('Restore') {
             steps {
                 bat 'dotnet restore Slacknotifier.sln'
