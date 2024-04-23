@@ -3,6 +3,7 @@ pipeline {
 	environment {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
 		ASPNETCOREENVIRONMENT = ''
+		SELECTION
     }
 	
     stages {
@@ -31,7 +32,8 @@ pipeline {
 						])
 					])
 					
-					echo "Selected environment: ${SELECTED_ENV}"
+					echo "${SELECTED_ENV} was selected from the list"
+					env.SELECTION = SELECTED_ENV
 				}
 			}
 		}
@@ -39,14 +41,14 @@ pipeline {
 		stage('Set environment') {
             steps {
                script { 
-					if (env.SELECTED_ENV == 'Development') { 
-						env.ASPNETCOREENVIRONMENT = env.SELECTED_ENV
-						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTED_ENV}"
-                    } else if (env.SELECTED_ENV == 'Production') {
-						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTED_ENV}"
-                        env.ASPNETCOREENVIRONMENT = env.SELECTED_ENV
+					if (env.SELECTION == 'Development') { 
+						env.ASPNETCOREENVIRONMENT = env.SELECTION
+						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTION}"
+                    } else if (env.SELECTION == 'Production') {
+						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTION}"
+                        env.ASPNETCOREENVIRONMENT = env.SELECTION
                     } else {
-						echo "Environment value Development fetched from selection item ${env.SELECTED_ENV}"
+						echo "Environment value Development fetched from selection item ${env.SELECTION}"
                         env.ASPNETCOREENVIRONMENT = 'Development'
                     }
 			   }
