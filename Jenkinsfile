@@ -50,7 +50,8 @@ pipeline {
 
         stage('Restore') {
             steps {
-                bat 'dotnet restore --configuration ${env.ASPNETCORE_ENVIRONMENT} Slacknotifier.sln'
+				bat "set ASPNETCORE_ENVIRONMENT=${env.ASPNETCORE_ENVIRONMENT}"
+                bat 'dotnet restore Slacknotifier.sln'
             }
         }
         stage('Build') {
