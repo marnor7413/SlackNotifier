@@ -2,7 +2,7 @@ pipeline {
     agent any
 	environment {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
-		ASPNETCORE_ENVIRONMENT = ''
+		ASPNETCOREENVIRONMENT = ''
     }
 	
     stages {
@@ -38,11 +38,11 @@ pipeline {
             steps {
                script { 
 					if (env.SELECTED_ENV == 'Development') { 
-						env.ASPNETCORE_ENVIRONMENT = env.SELECTED_ENV
+						env.ASPNETCOREENVIRONMENT = env.SELECTED_ENV
                     } else if (env.SELECTED_ENV == 'Production') {
-                        env.ASPNETCORE_ENVIRONMENT = env.SELECTED_ENV
+                        env.ASPNETCOREENVIRONMENT = env.SELECTED_ENV
                     } else {
-                        env.ASPNETCORE_ENVIRONMENT = 'Development'
+                        env.ASPNETCOREENVIRONMENT = 'Development'
                     }
 			   }
             }
@@ -50,8 +50,9 @@ pipeline {
 
         stage('Restore') {
             steps {
-				bat "set ASPNETCORE_ENVIRONMENT=${env.ASPNETCORE_ENVIRONMENT}"
-				echo '${ASPNETCORE_ENVIRONMENT} was set'
+				bat "set ASPNETCORE_ENVIRONMENT=${env.ASPNETCOREENVIRONMENT}"
+				bat "setx ASPNETCORE_ENVIRONMENT ${env.ASPNETCOREENVIRONMENT} /M"
+				echo "${env.ASPNETCORE_ENVIRONMENT} was set"
                 bat 'dotnet restore Slacknotifier.sln'
             }
         }
