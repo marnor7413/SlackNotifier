@@ -3,7 +3,7 @@ pipeline {
 	environment {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
 		ASPNETCOREENVIRONMENT = ''
-		SELECTION
+		SELECTION = ''
     }
 	
     stages {
