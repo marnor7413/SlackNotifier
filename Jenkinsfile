@@ -31,6 +31,7 @@ pipeline {
                             )
                         ])
                     ])
+					 echo "Selected environment: ${env.SELECTED_ENV}"
                 }
             }
         }
