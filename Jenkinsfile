@@ -2,17 +2,55 @@ pipeline {
     agent any
 	environment {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
+		ASPNETCORE_ENVIRONMENT = ''
     }
 	
     stages {
-		//stage ('Git Checkout') {
-		//	steps {
-		//	  git branch: 'develop', url: 'https://github.com/marnor7413/SlackNotifier'
-		//	}
-		//}
+		stage('Parameters') {
+            steps {
+                script {
+                    properties([
+                        parameters([
+                            multiselect(
+                                decisionTree: [
+                                    variableDescriptions: [
+                                        [
+                                            label       : 'Environment',
+                                            variableName: 'SELECTED_ENV'
+                                        ]
+                                    ],
+                                    itemList: [
+                                        ['value': 'Default'],
+                                        ['value': 'Development'],
+                                        ['value': 'Production']
+                                    ]
+                                ],
+                                description: 'Please select!',
+                                name: 'Environment'
+                            )
+                        ])
+                    ])
+                }
+            }
+        }
+		
+		stage('Set environment') {
+            steps {
+               script { 
+					if (env.SELECTED_ENV == 'Development') { 
+						env.ASPNETCORE_ENVIRONMENT = env.SELECTED_ENV
+                    } else if (env.SELECTED_ENV == 'Production') {
+                        env.ASPNETCORE_ENVIRONMENT = env.SELECTED_ENV
+                    } else {
+                        env.ASPNETCORE_ENVIRONMENT = 'Development'
+                    }
+			   }
+            }
+        }
+
         stage('Restore') {
             steps {
-                bat 'dotnet restore Slacknotifier.sln'
+                bat 'dotnet restore --configuration ${env.ASPNETCORE_ENVIRONMENT} Slacknotifier.sln'
             }
         }
         stage('Build') {
