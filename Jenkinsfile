@@ -1,6 +1,7 @@
 pipeline {
     agent any
 	environment {
+		SELECTED_ENV = ''
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
 		ASPNETCOREENVIRONMENT = ''
     }
@@ -39,9 +40,12 @@ pipeline {
                script { 
 					if (env.SELECTED_ENV == 'Development') { 
 						env.ASPNETCOREENVIRONMENT = env.SELECTED_ENV
+						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTED_ENV}"
                     } else if (env.SELECTED_ENV == 'Production') {
+						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTED_ENV}"
                         env.ASPNETCOREENVIRONMENT = env.SELECTED_ENV
                     } else {
+						echo "Environment value Development fetched from selection item ${env.SELECTED_ENV}"
                         env.ASPNETCOREENVIRONMENT = 'Development'
                     }
 			   }
