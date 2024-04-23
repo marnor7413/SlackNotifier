@@ -1,40 +1,40 @@
 pipeline {
     agent any
 	environment {
-		SELECTED_ENV = ''
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
 		ASPNETCOREENVIRONMENT = ''
     }
 	
     stages {
 		stage('Parameters') {
-            steps {
-                script {
-                    properties([
-                        parameters([
-                            multiselect(
-                                decisionTree: [
-                                    variableDescriptions: [
-                                        [
-                                            label       : 'Environment',
-                                            variableName: 'SELECTED_ENV'
-                                        ]
-                                    ],
-                                    itemList: [
-                                        ['value': 'Default'],
-                                        ['value': 'Development'],
-                                        ['value': 'Production']
-                                    ]
-                                ],
-                                description: 'Please select!',
-                                name: 'Environment'
-                            )
-                        ])
-                    ])
-					 echo "Selected environment: ${env.SELECTED_ENV}"
-                }
-            }
-        }
+			steps {
+				script {
+					properties([
+						parameters([
+							multiselect(
+								decisionTree: [
+									variableDescriptions: [
+										[
+											label       : 'Environment',
+											variableName: 'SELECTED_ENV'
+										]
+									],
+									itemList: [
+										['value': 'Default'],
+										['value': 'Development'],
+										['value': 'Production']
+									]
+								],
+								description: 'Please select!',
+								name: 'Environment'
+							)
+						])
+					])
+					
+					echo "Selected environment: ${SELECTED_ENV}"
+				}
+			}
+		}
 		
 		stage('Set environment') {
             steps {
