@@ -4,7 +4,7 @@ using SN.Application.Options;
 
 namespace MailService.ConsoleApp.Extensions;
 
-public static class LocalJsonSecrets
+public static class ConfigurationExtensions
 {
     public static List<SecretsOptions> GetJsonSecrets(this IConfiguration configuration, string relativeFilenamePath)
     {

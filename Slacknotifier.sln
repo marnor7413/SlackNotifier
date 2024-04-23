@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.Core", "SN.Core\SN.Core.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.Infrastructure", "SN.Infrastructure\SN.Infrastructure.csproj", "{DBE8EF8C-9481-4604-87DA-183F22161BC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SN.UnitTests", "SN.UnitTests\SN.UnitTests.csproj", "{7A11A3F5-A992-4485-9E7C-D5E96C2F8CF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SN.UnitTests", "SN.UnitTests\SN.UnitTests.csproj", "{7A11A3F5-A992-4485-9E7C-D5E96C2F8CF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -477,7 +477,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # Secrets file
-secrets.json
-googleCredentialsOAuth.json
-googleCredentialsServiceAccount.json
-/SN.Console/certificate.p12
+SN.Console/SlackSecrets*.json
+SN.Console/GoogleSecrets*.json
+SN.Console/token.json/Google.Apis.Auth.OAuth2.Responses.TokenResponse-user
