@@ -34,6 +34,7 @@ pipeline {
 					
 					echo "${SELECTED_ENV} was selected from the list"
 					env.SELECTION = SELECTED_ENV
+					echo "${env.SELECTION} is passed to other stages"
 				}
 			}
 		}
@@ -41,6 +42,7 @@ pipeline {
 		stage('Set environment') {
             steps {
                script { 
+					
 					if (env.SELECTION == 'Development') { 
 						env.ASPNETCOREENVIRONMENT = env.SELECTION
 						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTION}"
