@@ -64,7 +64,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                bat 'dotnet build --configuration Release .\SN.Console\SN.ConsoleApp.csproj'
+                bat 'dotnet build --configuration Release .\\SN.Console\\SN.ConsoleApp.csproj'
             }
         }
         stage('Deploy') {
@@ -79,7 +79,7 @@ pipeline {
 						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
 					
-					bat "dotnet publish --configuration Release -o ${env.DEPLOYMENT_DIR} .\sn.console\SN.ConsoleApp.csproj"
+					bat "dotnet publish --configuration Release -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
 					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
 					
 				}
