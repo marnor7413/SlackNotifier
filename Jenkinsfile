@@ -43,15 +43,13 @@ pipeline {
             steps {
                script { 
 					
-					if (env.SELECTION == 'Development') { 
-						env.ASPNETCOREENVIRONMENT = env.SELECTION
-						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTION}"
-                    } else if (env.SELECTION == 'Production') {
-						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTION}"
-                        env.ASPNETCOREENVIRONMENT = env.SELECTION
+					if (SELECTION == 'Development') { 
+						echo "Environment value ${SELECTION} fetched"
+                    } else if (SELECTION == 'Production') {
+						echo "Environment value ${SELECTION} fetched"
                     } else {
-						echo "Environment value Development fetched from selection item ${env.SELECTION}"
-                        env.ASPNETCOREENVIRONMENT = 'Development'
+						echo "No selection was made, setting Development as environment"
+                        SELECTION = 'Development'
                     }
 			   }
             }
@@ -59,9 +57,9 @@ pipeline {
 
         stage('Restore') {
             steps {
-				bat "set ASPNETCORE_ENVIRONMENT=${env.ASPNETCOREENVIRONMENT}"
-				bat "setx ASPNETCORE_ENVIRONMENT ${env.ASPNETCOREENVIRONMENT} /M"
-				echo "${env.ASPNETCOREENVIRONMENT} was set"
+				bat "set ASPNETCORE_ENVIRONMENT=${SELECTION}"
+				bat "setx ASPNETCORE_ENVIRONMENT ${SELECTION} /M"
+				echo "${SELECTION} was set"
                 bat 'dotnet restore Slacknotifier.sln'
             }
         }
