@@ -31,10 +31,10 @@ pipeline {
 							)
 						])
 					])
-					
+						
 					echo "${SELECTED_ENV} was selected from the list"
-					env.SELECTION = SELECTED_ENV
-					echo "${env.SELECTION} is passed to other stages"
+					SELECTION = SELECTED_ENV
+					echo "${SELECTION} is passed to other stages"
 				}
 			}
 		}
@@ -43,15 +43,15 @@ pipeline {
             steps {
                script { 
 					
-					if (env.SELECTION == 'Development') { 
-						env.ASPNETCOREENVIRONMENT = env.SELECTION
-						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTION}"
-                    } else if (env.SELECTION == 'Production') {
-						echo "Environment value ${env.ASPNETCOREENVIRONMENT} fetched from selection item ${env.SELECTION}"
-                        env.ASPNETCOREENVIRONMENT = env.SELECTION
+					if (SELECTION == 'Development') { 
+						ASPNETCOREENVIRONMENT = SELECTION
+						echo "Environment value ${ASPNETCOREENVIRONMENT} fetched from selection item ${SELECTION}"
+                    } else if (SELECTION == 'Production') {
+						echo "Environment value ${ASPNETCOREENVIRONMENT} fetched from selection item ${SELECTION}"
+                        ASPNETCOREENVIRONMENT = SELECTION
                     } else {
-						echo "Environment value Development fetched from selection item ${env.SELECTION}"
-                        env.ASPNETCOREENVIRONMENT = 'Development'
+						echo "Environment value Development fetched from selection item ${SELECTION}"
+                        ASPNETCOREENVIRONMENT = 'Development'
                     }
 			   }
             }
@@ -59,9 +59,9 @@ pipeline {
 
         stage('Restore') {
             steps {
-				bat "set ASPNETCORE_ENVIRONMENT=${env.ASPNETCOREENVIRONMENT}"
-				bat "setx ASPNETCORE_ENVIRONMENT ${env.ASPNETCOREENVIRONMENT} /M"
-				echo "${env.ASPNETCORE_ENVIRONMENT} was set"
+				bat "set ASPNETCORE_ENVIRONMENT=${ASPNETCOREENVIRONMENT}"
+				bat "setx ASPNETCORE_ENVIRONMENT ${ASPNETCOREENVIRONMENT} /M"
+				echo "${ASPNETCORE_ENVIRONMENT} was set"
                 bat 'dotnet restore Slacknotifier.sln'
             }
         }
@@ -73,17 +73,17 @@ pipeline {
         stage('Deploy') {
 			steps {
 				script {
-					if (!fileExists(env.DEPLOYMENT_DIR)) {
-						bat "mkdir ${env.DEPLOYMENT_DIR}"
+					if (!fileExists(DEPLOYMENT_DIR)) {
+						bat "mkdir ${DEPLOYMENT_DIR}"
 					} else {
 						echo 'Directory already exists'
 						bat "taskkill /F /FI \"IMAGENAME eq dotnet.exe\" /FI \"WINDOWTITLE eq SN.ConsoleApp\" /T >NUL 2>&1"
-						bat "del /Q ${env.DEPLOYMENT_DIR}\\*"
-						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
+						bat "del /Q ${DEPLOYMENT_DIR}\\*"
+						bat "for /D %%p in (${DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
 					
-					bat "xcopy /s /y .\\SN.Console\\bin\\Release\\net6.0\\* ${env.DEPLOYMENT_DIR}"
-					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
+					bat "xcopy /s /y .\\SN.Console\\bin\\Release\\net6.0\\* ${DEPLOYMENT_DIR}"
+					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${DEPLOYMENT_DIR}"
 					
 				}
 			}
