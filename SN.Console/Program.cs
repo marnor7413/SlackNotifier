@@ -17,7 +17,7 @@ class Program
         using var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices((hostContext, services) =>
             {
-                var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+                var environmentName = GetEnvironment ?? "Development";
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -52,6 +52,22 @@ class Program
         //    }
         //    Console.Clear();
         //}
+    }
+
+    public static string GetEnvironment
+    {
+        get
+        {
+            string environmentName = null;
+
+            #if DEBUG
+                environmentName = "Development";
+            #elif RELEASE
+                environmentName = "Production";
+            #endif
+
+            return environmentName;
+        }
     }
 
     private static void DoWork(object state)
