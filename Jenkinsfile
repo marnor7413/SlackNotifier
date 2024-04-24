@@ -57,7 +57,6 @@ pipeline {
 
         stage('Restore') {
             steps {
-				bat "set ASPNETCORE_ENVIRONMENT=${SELECTION}"
 				bat "setx ASPNETCORE_ENVIRONMENT ${SELECTION} /M"
 				echo "${SELECTION} was set"
                 bat 'dotnet restore Slacknotifier.sln'
@@ -65,7 +64,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                bat 'dotnet build --configuration Release Slacknotifier.sln'
+                bat 'dotnet build --configuration Release .\SN.Console\SN.ConsoleApp.csproj'
             }
         }
         stage('Deploy') {
@@ -80,7 +79,7 @@ pipeline {
 						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
 					
-					bat "xcopy /s /y .\\SN.Console\\bin\\Release\\net6.0\\* ${env.DEPLOYMENT_DIR}"
+					bat "dotnet publish --configuration Release -o ${env.DEPLOYMENT_DIR} .\sn.console\SN.ConsoleApp.csproj"
 					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
 					
 				}
