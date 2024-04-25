@@ -75,7 +75,7 @@ pipeline {
 			steps {
 				script {
 					if (!fileExists(env.DEPLOYMENT_DIR)) {
-						echo 'Application directory didn't exist, creating...'
+						echo 'Application directory missing, creating...'
 						bat "mkdir ${env.DEPLOYMENT_DIR}"
 					} else {
 						echo 'Directory already exists'
