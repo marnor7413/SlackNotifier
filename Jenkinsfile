@@ -4,6 +4,7 @@ pipeline {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
 		ASPNETCOREENVIRONMENT = ''
 		SELECTION = ''
+		BUILDCONFIGURATION = ''
     }
 	
     stages {
@@ -45,11 +46,14 @@ pipeline {
 					
 					if (SELECTION == 'Development') { 
 						echo "Environment value ${SELECTION} fetched"
+						BUILDCONFIGURATION = 'Debug'
                     } else if (SELECTION == 'Production') {
 						echo "Environment value ${SELECTION} fetched"
+						BUILDCONFIGURATION = 'Release'
                     } else {
 						echo "No selection was made, setting Development as environment"
                         SELECTION = 'Development'
+						BUILDCONFIGURATION = 'Debug'
                     }
 			   }
             }
@@ -64,7 +68,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                bat 'dotnet build --configuration Release .\\SN.Console\\SN.ConsoleApp.csproj'
+                bat "dotnet build --configuration ${env.BUILDCONFIGURATION} .\\SN.Console\\SN.ConsoleApp.csproj"
             }
         }
         stage('Deploy') {
@@ -78,8 +82,7 @@ pipeline {
 						bat "del /Q ${env.DEPLOYMENT_DIR}\\*"
 						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
-					
-					bat "dotnet publish --configuration Release -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
+					bat "dotnet publish --configuration ${env.BUILDCONFIGURATION} -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
 					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
 					
 				}
