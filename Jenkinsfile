@@ -55,19 +55,19 @@ pipeline {
                         SELECTION = 'Development'
 						BUILDCONFIGURATION = 'Debug'
                     }
+					echo "Configuration set to ${BUILDCONFIGURATION}"
 			   }
             }
         }
-
         stage('Restore') {
             steps {
-				bat "setx ASPNETCORE_ENVIRONMENT ${SELECTION} /M"
-				echo "${SELECTION} was set"
+				echo 'Restoring dependencies'
                 bat 'dotnet restore Slacknotifier.sln'
             }
         }
         stage('Build') {
             steps {
+				echo 'Building application'
                 bat "dotnet build --configuration ${env.BUILDCONFIGURATION} .\\SN.Console\\SN.ConsoleApp.csproj"
             }
         }
@@ -75,6 +75,7 @@ pipeline {
 			steps {
 				script {
 					if (!fileExists(env.DEPLOYMENT_DIR)) {
+						echo 'Application directory didn't exist, creating...'
 						bat "mkdir ${env.DEPLOYMENT_DIR}"
 					} else {
 						echo 'Directory already exists'
@@ -82,7 +83,9 @@ pipeline {
 						bat "del /Q ${env.DEPLOYMENT_DIR}\\*"
 						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
+					echo 'Publishing to application'
 					bat "dotnet publish --configuration ${env.BUILDCONFIGURATION} -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
+					echo 'Adding secrets to application'
 					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
 					
 				}
