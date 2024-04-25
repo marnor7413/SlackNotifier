@@ -1,34 +1,38 @@
-﻿using MailService.ConsoleApp.Extensions;
-using MailService.Infrastructure.Factories;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using SN.Application.Interfaces;
-using SN.Application.Options;
-using SN.Application.Services;
-using SN.Infrastructure.Services.Gmail;
-using SN.Infrastructure.Services.Slack;
+using SN.ConsoleApp.Extensions;
 
 namespace MailService;
 
 class Program
 {
-    private const string GmailBaseUriKey = "Appsettings:GmailBaseUri";
-    private const string SlackBaseUriKey = "Appsettings:SlackBaseUri";
     private static IMessageForwarderService _messageForwarder;
     private static Timer _timer;
     private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Allow only one execution at a time
-    private static IConfiguration configuration;
 
     static async Task Main(string[] args)
     {
+        using var host = Host.CreateDefaultBuilder(args)
+            .ConfigureServices((hostContext, services) =>
+            {
+                var environmentName = GetEnvironment ?? "Development";
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+                    .AddEnvironmentVariables()
+                    .AddCommandLine(args)
+                    .Build();
 
-        configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
+                services.AddHttpClients(configuration);
+                services.ConfigureOptionsFromAppsettings(configuration);
+                services.AddSingleton<IConfiguration>(configuration);
+                services.AddServices();
+            })
             .Build();
-        
-        using var host = CreateHostBuilder(args).Build();
+
 
         _messageForwarder = host.Services.GetRequiredService<IMessageForwarderService>();
         await _messageForwarder.Run();
@@ -50,40 +54,21 @@ class Program
         //}
     }
 
-    private static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureServices((hostContext, services) =>
-            {
-                List<SecretsOptions> secrets = configuration.GetJsonSecrets("secrets.json");
-                services.AddSingleton(secrets);
-                services.AddSingleton(provider =>
-                    Options.Create(provider.GetRequiredService<List<SecretsOptions>>()));
-                
-                services.AddHttpClient<GmailApiService>((httpClient) =>
-                {
-                    var baseUri = configuration.GetSection(GmailBaseUriKey).Value;
-                    httpClient.BaseAddress = new Uri(baseUri);
-                });
+    public static string GetEnvironment
+    {
+        get
+        {
+            string environmentName = null;
 
-                services.AddHttpClient<SlackApiService>((httpClient) =>
-                {
-                    var baseUri = configuration.GetSection(SlackBaseUriKey).Value;
-                    httpClient.Timeout = TimeSpan.FromSeconds(30);
-                    httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                    httpClient.BaseAddress = new Uri(baseUri);
-                });
+            #if DEBUG
+                environmentName = "Development";
+            #elif RELEASE
+                environmentName = "Production";
+            #endif
 
-                services.AddScoped<IGmailInboxService, GmailInboxService>();
-                services.AddScoped<IMessageForwarderService, MessageForwarderService>();
-                services.AddScoped<IGmailApiService, GmailApiService>();
-                services.AddScoped<IGmailPayloadService, GmailPayloadService>();
-                services.AddScoped<IGoogleAuthService, GoogleAuthService>();
-                services.AddScoped<IIOService, IOService>();
-                services.AddScoped<IGmailServiceFactory, GmailServiceFactory>();
-                services.AddScoped<IMessageTypeService, MessageTypeService>();
-                services.AddScoped<ISlackService, SlackService>();
-                services.AddScoped<ISlackApiService, SlackApiService>();
-            });
+            return environmentName;
+        }
+    }
 
     private static void DoWork(object state)
     {

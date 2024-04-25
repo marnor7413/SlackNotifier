@@ -2,28 +2,80 @@ pipeline {
     agent any
 	environment {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
+		ASPNETCOREENVIRONMENT = ''
+		SELECTION = ''
+		BUILDCONFIGURATION = ''
     }
 	
     stages {
-		//stage ('Git Checkout') {
-		//	steps {
-		//	  git branch: 'develop', url: 'https://github.com/marnor7413/SlackNotifier'
-		//	}
-		//}
+		stage('Parameters') {
+			steps {
+				script {
+					properties([
+						parameters([
+							multiselect(
+								decisionTree: [
+									variableDescriptions: [
+										[
+											label       : 'Environment',
+											variableName: 'SELECTED_ENV'
+										]
+									],
+									itemList: [
+										['value': 'Default'],
+										['value': 'Development'],
+										['value': 'Production']
+									]
+								],
+								description: 'Please select!',
+								name: 'Environment'
+							)
+						])
+					])
+						
+					echo "${SELECTED_ENV} was selected from the list"
+					SELECTION = SELECTED_ENV
+					echo "${SELECTION} is passed to other stages"
+				}
+			}
+		}
+		
+		stage('Set environment') {
+            steps {
+               script { 
+					
+					if (SELECTION == 'Development') { 
+						echo "Environment value ${SELECTION} fetched"
+						BUILDCONFIGURATION = 'Debug'
+                    } else if (SELECTION == 'Production') {
+						echo "Environment value ${SELECTION} fetched"
+						BUILDCONFIGURATION = 'Release'
+                    } else {
+						echo "No selection was made, setting Development as environment"
+                        SELECTION = 'Development'
+						BUILDCONFIGURATION = 'Debug'
+                    }
+					echo "Configuration set to ${BUILDCONFIGURATION}"
+			   }
+            }
+        }
         stage('Restore') {
             steps {
+				echo 'Restoring dependencies'
                 bat 'dotnet restore Slacknotifier.sln'
             }
         }
         stage('Build') {
             steps {
-                bat 'dotnet build --configuration Release Slacknotifier.sln'
+				echo 'Building application'
+                bat "dotnet build --configuration ${env.BUILDCONFIGURATION} .\\SN.Console\\SN.ConsoleApp.csproj"
             }
         }
         stage('Deploy') {
 			steps {
 				script {
 					if (!fileExists(env.DEPLOYMENT_DIR)) {
+						echo 'Application directory missing, creating...'
 						bat "mkdir ${env.DEPLOYMENT_DIR}"
 					} else {
 						echo 'Directory already exists'
@@ -31,8 +83,9 @@ pipeline {
 						bat "del /Q ${env.DEPLOYMENT_DIR}\\*"
 						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
-					
-					bat "xcopy /s /y .\\SN.Console\\bin\\Release\\net6.0\\* ${env.DEPLOYMENT_DIR}"
+					echo 'Publishing to application'
+					bat "dotnet publish --configuration ${env.BUILDCONFIGURATION} -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
+					echo 'Adding secrets to application'
 					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
 					
 				}
