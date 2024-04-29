@@ -66,7 +66,7 @@ public class GmailInboxService : IGmailInboxService
 
         if (message != null)
         {
-            //await gmailApiService.ToggleMessageToRead(emailId); //TODO: uncomment this line
+            await gmailApiService.ToggleMessageToRead(emailId);
             var email = new EmailInfo(
                 counter,
                 message.Payload.Headers.Single(x => x.Name == "Date").Value,

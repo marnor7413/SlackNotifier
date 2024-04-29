@@ -36,22 +36,22 @@ class Program
 
         _messageForwarder = host.Services.GetRequiredService<IMessageForwarderService>();
         await _messageForwarder.Run();
-        //_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
-        
-        //Console.WriteLine("Console application started.");
-        //while (true)
-        //{
-        //    Console.WriteLine("Press Enter to exit");
-        //    var input = Console.ReadLine();
-            
-        //    if (string.IsNullOrEmpty(input))
-        //    {
-        //        host.StopAsync()
-        //            .Wait();
-        //        return;
-        //    }
-        //    Console.Clear();
-        //}
+        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
+
+        Console.WriteLine("Console application started.");
+        while (true)
+        {
+            Console.WriteLine("Press Enter to exit");
+            var input = Console.ReadLine();
+
+            if (string.IsNullOrEmpty(input))
+            {
+                host.StopAsync()
+                    .Wait();
+                return;
+            }
+            Console.Clear();
+        }
     }
 
     public static string GetEnvironment
