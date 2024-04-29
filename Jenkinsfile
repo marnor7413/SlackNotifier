@@ -51,8 +51,8 @@ pipeline {
 						echo "Environment value ${SELECTION} fetched"
 						BUILDCONFIGURATION = 'Release'
                     } else {
-						echo "No selection was made, setting Development as environment"
-                        SELECTION = 'Development'
+						echo "No selection was made, setting Default as environment"
+                        SELECTION = 'Default'
 						BUILDCONFIGURATION = 'Debug'
                     }
 					echo "Configuration set to ${BUILDCONFIGURATION}"
@@ -72,6 +72,9 @@ pipeline {
             }
         }
         stage('Deploy') {
+			when {
+					expression { SELECTION != 'Default' }
+			}
 			steps {
 				script {
 					if (!fileExists(env.DEPLOYMENT_DIR)) {
