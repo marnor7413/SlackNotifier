@@ -3,11 +3,7 @@ using Newtonsoft.Json.Linq;
 using SN.Application.Interfaces;
 using SN.Application.Options;
 using SN.Application.Services;
-using SN.Core.ValueObjects;
 using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Channels;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SN.Infrastructure.Services.Slack;
 
@@ -53,33 +49,29 @@ public class SlackApiService : ISlackApiService
     public async Task<HttpResponseMessage> UploadFileAsync(string uploadUrl, byte[] fileBytes)
     {
         var client = httpClientFactory.CreateClient(nameof(SlackApiService));
-
         using var content = new ByteArrayContent(fileBytes);
-
         var response = await client.PostAsync(uploadUrl, content);
 
         return response;
     }
 
-    public async Task<HttpResponseMessage> CompleteUploadAsync(string fileId, string filename, string messageThread)
+    public async Task<HttpResponseMessage> CompleteUploadAsync(Dictionary<string,string> files, string messageThread)
     {
         var jsonObject = new JObject(
             new JProperty("channel_id", $"{options.Destination}"),
             new JProperty("thread_ts", $"{messageThread}"),
+            new JProperty("initial_comment", files.Count > 1 ? "Bifogade filer" : "Bifogad fil"),
             new JProperty("files",
-                new JArray(
-                    new JObject(
-                        new JProperty("id",  $"{fileId}"),
-                        new JProperty("title",  $"{filename}")
-                    )
-                )
-            )
-        );
-
+                new JArray(files.Select(f =>
+                {
+                    return new JObject(
+                        new JProperty("id", $"{f.Key}"), 
+                        new JProperty("title", $"{f.Value}"));
+                }))
+            ));
         var requestBody = new StringContent(jsonObject.ToString(), Encoding.UTF8);
         requestBody.Headers.ContentType.MediaType = "application/json";
         
-        //TODO: fixa om till JSON enligt https://api.slack.com/methods/files.completeUploadExternal
         var client = httpClientFactory.CreateClient(nameof(SlackApiService));
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.Token}");
         var response = await client.PostAsync(SlackApiEndpoints.CompleteUpload, requestBody);

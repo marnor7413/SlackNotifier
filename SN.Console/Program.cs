@@ -35,7 +35,6 @@ class Program
 
 
         _messageForwarder = host.Services.GetRequiredService<IMessageForwarderService>();
-        await _messageForwarder.Run();
         _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
         Console.WriteLine("Console application started.");

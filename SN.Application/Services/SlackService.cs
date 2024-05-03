@@ -5,7 +5,6 @@ using SN.Application.Interfaces;
 using SN.Application.Options;
 using SN.Core.ValueObjects;
 using System.Net;
-using static Google.Apis.Requests.BatchRequest;
 
 namespace SN.Application.Services;
 
@@ -59,13 +58,14 @@ public class SlackService : ISlackService
 
     private async Task<bool> UploadFiles(EmailInfo message, string messageThread)
     {
+        var files = new Dictionary<string, string>();
         foreach (var item in message.FileAttachments)
         {
             try
             {
                 var getUploadUrlResponse = await slackApiService.GetUploadUrlAsync(item.fileType, item.FileName, item.ToByteArray().Length);
-                var responseBody = await getUploadUrlResponse.Content.ReadAsStringAsync();
-                var slackGetUploadUrlResponse = SlackGetUploadUrlResponse.FromJson(responseBody);
+                var getUploadUrlResponseContent = await getUploadUrlResponse.Content.ReadAsStringAsync();
+                var slackGetUploadUrlResponse = SlackGetUploadUrlResponse.FromJson(getUploadUrlResponseContent);
                 if (!getUploadUrlResponse.IsSuccessStatusCode || !slackGetUploadUrlResponse.Ok)
                 {
                     LogResult(HttpStatusCode.InternalServerError, Operation.File, getUploadUrlResponse, message.From, item.FileName);
@@ -73,35 +73,55 @@ public class SlackService : ISlackService
                     return false;
                 }
 
-                var uploadResponse = await slackApiService.UploadFileAsync(slackGetUploadUrlResponse.UploadUrl, item.ToByteArray());
-                var testBody = await uploadResponse.Content.ReadAsStringAsync();
-
-                if (!uploadResponse.IsSuccessStatusCode)
+                var uploadFileResponse = await slackApiService.UploadFileAsync(slackGetUploadUrlResponse.UploadUrl, item.ToByteArray());
+                var uploadFileResponseContent = await uploadFileResponse.Content.ReadAsStringAsync();
+                if (!uploadFileResponse.IsSuccessStatusCode)
                 {
-                    LogResult(uploadResponse.StatusCode, Operation.File, uploadResponse, message.From, item.FileName);
+                    LogResult(uploadFileResponse.StatusCode, Operation.File, uploadFileResponse, message.From, item.FileName);
 
                     return false;
                 }
-
-                var completeUploadResponse = await slackApiService.CompleteUploadAsync(slackGetUploadUrlResponse.FileId, item.FileName, messageThread);
-                var hej = await completeUploadResponse.Content.ReadAsStringAsync();
-                if (!completeUploadResponse.IsSuccessStatusCode)
-                {
-                    LogResult(completeUploadResponse.StatusCode, Operation.File, completeUploadResponse, message.From, item.FileName);
-
-                    return false;
-                }
-                LogResult(completeUploadResponse.StatusCode, Operation.File, completeUploadResponse, message.From, item.FileName);
+                files.Add(slackGetUploadUrlResponse.FileId, item.FileName);
             }
             catch (Exception)
             {
-                Console.WriteLine("An unknown error occured when trying to upload a file to slack");
+                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured when trying to upload the file {item.FileName} to slack");
 
                 return false;
             }
         }
 
+        try
+        {
+            var completeUploadResponse = await slackApiService.CompleteUploadAsync(files, messageThread);
+            var completeUploadResponseContent = await completeUploadResponse.Content.ReadAsStringAsync();
+            if (!completeUploadResponse.IsSuccessStatusCode)
+            {
+                LogCompleteUploadResult(message, files, completeUploadResponse);
+
+                return false;
+            }
+            LogCompleteUploadResult(message, files, completeUploadResponse);
+        }
+        catch (Exception)
+        {
+            foreach (var file in files)
+            {
+                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured when trying to upload the file {file.Value} to slack");
+            }
+
+            return false;
+        }
+
         return true;
+    }
+
+    private void LogCompleteUploadResult(EmailInfo message, Dictionary<string, string> files, HttpResponseMessage completeUploadResponse)
+    {
+        foreach (var file in files)
+        {
+            LogResult(completeUploadResponse.StatusCode, Operation.File, completeUploadResponse, message.From, file.Value);
+        }
     }
 
     private void LogResult(HttpStatusCode statusCode, Operation operation, HttpResponseMessage httpResponse, string from, string filename)
