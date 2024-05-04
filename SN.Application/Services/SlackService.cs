@@ -3,6 +3,7 @@ using SN.Application.Dtos;
 using SN.Application.Extensions;
 using SN.Application.Interfaces;
 using SN.Application.Options;
+using SN.Core.ValueObjects;
 using System.Net;
 
 namespace SN.Application.Services;
@@ -26,8 +27,10 @@ public class SlackService : ISlackService
 
     public async Task<bool> SendMessage(List<EmailInfo> messages)
     {
+        bool uploadFilesResult = false;
         foreach (var message in messages)
         {
+            var messageThread = string.Empty;
             var requestBody = message.ToSlackFormattedStringContent(options.Destination);
             HttpResponseMessage sendMessageResponse;
             dynamic sendMessageResponseInfo;
@@ -35,52 +38,89 @@ public class SlackService : ISlackService
             {
                 sendMessageResponse = await slackApiService.SendMessage(requestBody);
                 sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
+                messageThread = (string)sendMessageResponseInfo.ts;
             }
             catch (Exception)
             {
-                return false;
+                return uploadFilesResult;
             }
             LogResult(sendMessageResponse.StatusCode, Operation.Message, sendMessageResponse, message.From, string.Empty);
+            uploadFilesResult = await UploadFiles(message, messageThread);
 
-            foreach (var item in message.FileAttachments)
+            if (!uploadFilesResult)
             {
-                using var formData = new MultipartFormDataContent();
-                using var fileContent = new ByteArrayContent(item.ToByteArray());
-                formData.Add(fileContent, "file", item.FileName);
-                AddParametersToFormDataObject(sendMessageResponseInfo, item, formData);
+                return uploadFilesResult;
+            }
+        }
 
-                HttpResponseMessage uploadFileResponse;
-                try
+        return uploadFilesResult;
+    }
+
+    private async Task<bool> UploadFiles(EmailInfo message, string messageThread)
+    {
+        var files = new Dictionary<string, string>();
+        foreach (var item in message.FileAttachments)
+        {
+            try
+            {
+                var getUploadUrlResponse = await slackApiService.GetUploadUrlAsync(item.fileType, item.FileName, item.ToByteArray().Length);
+                var getUploadUrlResponseContent = await getUploadUrlResponse.Content.ReadAsStringAsync();
+                var slackGetUploadUrlResponse = SlackGetUploadUrlResponse.FromJson(getUploadUrlResponseContent);
+                if (!getUploadUrlResponse.IsSuccessStatusCode || !slackGetUploadUrlResponse.Ok)
                 {
-                    uploadFileResponse = await slackApiService.UploadFile(formData);
-                    var uploadFileResponseInfo = await uploadFileResponse.ExtractResponseDataFromHttpResponseMessage();
-                }
-                catch (Exception)
-                {
+                    LogResult(HttpStatusCode.InternalServerError, Operation.File, getUploadUrlResponse, message.From, item.FileName);
+
                     return false;
                 }
-                LogResult(uploadFileResponse.StatusCode, Operation.File, uploadFileResponse, message.From, item.FileName);
+
+                var uploadFileResponse = await slackApiService.UploadFileAsync(slackGetUploadUrlResponse.UploadUrl, item.ToByteArray());
+                var uploadFileResponseContent = await uploadFileResponse.Content.ReadAsStringAsync();
+                if (!uploadFileResponse.IsSuccessStatusCode)
+                {
+                    LogResult(uploadFileResponse.StatusCode, Operation.File, uploadFileResponse, message.From, item.FileName);
+
+                    return false;
+                }
+                files.Add(slackGetUploadUrlResponse.FileId, item.FileName);
             }
+            catch (Exception)
+            {
+                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured when trying to upload the file {item.FileName} to slack");
+
+                return false;
+            }
+        }
+
+        try
+        {
+            var completeUploadResponse = await slackApiService.CompleteUploadAsync(files, messageThread);
+            var completeUploadResponseContent = await completeUploadResponse.Content.ReadAsStringAsync();
+            if (!completeUploadResponse.IsSuccessStatusCode)
+            {
+                LogCompleteUploadResult(message, files, completeUploadResponse);
+
+                return false;
+            }
+            LogCompleteUploadResult(message, files, completeUploadResponse);
+        }
+        catch (Exception)
+        {
+            foreach (var file in files)
+            {
+                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured when trying to upload the file {file.Value} to slack");
+            }
+
+            return false;
         }
 
         return true;
     }
 
-    private void AddParametersToFormDataObject(dynamic responseObject, FileAttachment item, MultipartFormDataContent formData)
+    private void LogCompleteUploadResult(EmailInfo message, Dictionary<string, string> files, HttpResponseMessage completeUploadResponse)
     {
-        var parameters = new[]
+        foreach (var file in files)
         {
-            new KeyValuePair<string, string>("filename", item.FileName),
-            new KeyValuePair<string, string>("filetype", item.fileType),
-            new KeyValuePair<string, string>("channels", options.Destination),
-            new KeyValuePair<string, string>("initial_comment", item.FileName),
-            new KeyValuePair<string, string>("title", "Bifogad fil"),
-            new KeyValuePair<string, string>("thread_ts", (string)responseObject.ts)
-        };
-
-        foreach (var parameter in parameters)
-        {
-            formData.Add(new StringContent(parameter.Value), parameter.Key);
+            LogResult(completeUploadResponse.StatusCode, Operation.File, completeUploadResponse, message.From, file.Value);
         }
     }
 
