@@ -26,14 +26,6 @@ public class SlackApiService : ISlackApiService
         return await client.PostAsync(SlackApiEndpoints.PostMessage, requestBody);
     }
 
-    public async Task<HttpResponseMessage> UploadFile(MultipartFormDataContent formData)
-    {
-        var client = httpClientFactory.CreateClient(nameof(SlackApiService));
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.Token}");
-
-        return await client.PostAsync(SlackApiEndpoints.UploadFile, formData);
-    }
-
     public async Task<HttpResponseMessage> GetUploadUrlAsync(string fileType, string filename, long filesize)
     {
         var requestUrl = $"{SlackApiEndpoints.GetUploadUrl}" +
