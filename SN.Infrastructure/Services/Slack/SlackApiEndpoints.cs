@@ -3,7 +3,6 @@
 public static class SlackApiEndpoints
 {
     public const string PostMessage = "/api/chat.postMessage";
-    public const string UploadFile = "/api/files.upload";
     public const string GetUploadUrl = "/api/files.getUploadURLExternal";
     public const string CompleteUpload = "/api/files.completeUploadExternal?";
 }
