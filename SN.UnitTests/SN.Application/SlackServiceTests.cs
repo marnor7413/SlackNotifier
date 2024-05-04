@@ -21,12 +21,18 @@ public class SlackServiceTests : BaseTests
         // Assign
         var emailInfosRequest = CreateEmailInfosRequest();
         
-        var sendMessageResponse = CreateHttpResponse(HttpStatusCode.OK);
+        var okHttpResponse = CreateHttpResponse(HttpStatusCode.OK);
         var apiService = Fixture.Freeze<ISlackApiService>();
-        apiService.SendMessage(Arg.Any<StringContent>()).Returns(Task.FromResult(sendMessageResponse));
+        apiService.SendMessage(Arg.Any<StringContent>()).Returns(Task.FromResult(okHttpResponse));
 
-        var uploadFileResponse = CreateHttpResponse(HttpStatusCode.OK);
-        apiService.UploadFile(Arg.Any<MultipartFormDataContent>()).Returns(Task.FromResult(uploadFileResponse));
+        var getUploadUrlResponse = CreateGetUploadUrlHttpResponse(HttpStatusCode.OK);
+        apiService
+            .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<long>())
+            .Returns(Task.FromResult(getUploadUrlResponse));
+        apiService.UploadFileAsync(Arg.Any<string>(), Arg.Any<Byte[]>())
+            .Returns(Task.FromResult(okHttpResponse));
+        apiService.CompleteUploadAsync(Arg.Any<Dictionary<string, string>>(), Arg.Any<string>())
+            .Returns(Task.FromResult(okHttpResponse));
         
         var options = CreateOptions();
         var SUT = new SlackService(apiService, options);
@@ -58,7 +64,7 @@ public class SlackServiceTests : BaseTests
     }
 
     [Fact]
-    public async Task SendMessage_WhenUploadFileThrowsException_ReturnsFalse()
+    public async Task SendMessage_WhenGetUploadUrlAsyncThrowsException_ReturnsFalse()
     {
         // Assign
         var emailInfosRequest = CreateEmailInfosRequest();
@@ -67,7 +73,9 @@ public class SlackServiceTests : BaseTests
         var apiService = Fixture.Freeze<ISlackApiService>();
         apiService.SendMessage(Arg.Any<StringContent>()).Returns(Task.FromResult(sendMessageResponse));
 
-        apiService.UploadFile(Arg.Any<MultipartFormDataContent>()).Throws<Exception>();
+        apiService
+            .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<long>())
+            .Throws<Exception>();
 
         var options = CreateOptions();
         var SUT = new SlackService(apiService, options);
@@ -110,6 +118,32 @@ public class SlackServiceTests : BaseTests
         return options;
     }
 
+    private static HttpResponseMessage CreateGetUploadUrlHttpResponse(HttpStatusCode code, 
+        bool okValue = true, 
+        string errorValue = "",
+        string uploadUrlValue = "http://anywhere.com",
+        string fileIdValue = "file.txt")
+    {
+        var okProperty = "ok";
+        var errorProperty = "error";
+        var uploadUrlProperty = "upload_url";
+        var fileIdProperty = "file_id";
+        
+        return new HttpResponseMessage(code)
+        {
+            Content = new StringContent(
+                        new JsonObject 
+                        { 
+                            { okProperty, okValue },
+                            { errorProperty, errorValue },
+                            { uploadUrlProperty, uploadUrlValue },
+                            { fileIdProperty, fileIdValue }
+                            
+                        }.ToString(),
+                        Encoding.UTF8)
+        };
+    }
+    
     private static HttpResponseMessage CreateHttpResponse(HttpStatusCode code, string threadProperty = null, string mailThreadId = null)
     {
         threadProperty ??= "ts";
