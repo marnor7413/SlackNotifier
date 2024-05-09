@@ -47,20 +47,25 @@ public class SlackApiService : ISlackApiService
         return response;
     }
 
-    public async Task<HttpResponseMessage> CompleteUploadAsync(Dictionary<string,string> files, string messageThread)
+    public async Task<HttpResponseMessage> CompleteUploadAsync(Dictionary<string,string> files, string messageThread = null)
     {
         var jsonObject = new JObject(
-            new JProperty("channel_id", $"{options.Destination}"),
-            new JProperty("thread_ts", $"{messageThread}"),
-            new JProperty("initial_comment", files.Count > 1 ? "Bifogade filer" : "Bifogad fil"),
             new JProperty("files",
                 new JArray(files.Select(f =>
                 {
                     return new JObject(
-                        new JProperty("id", $"{f.Key}"), 
-                        new JProperty("title", $"{f.Value}"));
+                        new JProperty("id", $"{f.Value}"), 
+                        new JProperty("title", $"{f.Key}"));
                 }))
             ));
+
+        if (!string.IsNullOrWhiteSpace(messageThread))
+        {
+            jsonObject.Add(new JProperty("channel_id", $"{options.Destination}"));
+            jsonObject.Add(new JProperty("initial_comment", files.Count > 1 ? "Bifogade filer" : "Bifogad fil"));
+            jsonObject.Add(new JProperty("thread_ts", $"{messageThread}"));
+        }
+
         var requestBody = new StringContent(jsonObject.ToString(), Encoding.UTF8);
         requestBody.Headers.ContentType.MediaType = "application/json";
         

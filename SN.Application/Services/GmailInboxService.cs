@@ -136,6 +136,13 @@ public class GmailInboxService : IGmailInboxService
                 email.FileAttachments.AddRange(await gmailPayloadService.GetAttachments(message.Id, gmailAttachmentData));
             }
 
+            var relatedAttachments = message.Payload.Parts
+                .SingleOrDefault(x => x.MimeType == "multipart/related")?
+                .Parts
+                .Where(x => x.MimeType != "multipart/alternative") ?? Enumerable.Empty<MessagePart>();
+
+            email.RelatedFileAttachments.AddRange(await gmailPayloadService.GetAttachments(message.Id, relatedAttachments));
+
             return email.Validate() ? email : null;
         }
 
