@@ -37,7 +37,7 @@ public class SlackService : ISlackService
             var messageThread = string.Empty;
 
             var blockBuilder = slackBlockBuilder
-                .WithDivider()
+                .WithHeaderTitle("Mail vidarebefodrat från orgrytetorp@gmail.com:")
                 .WithSendDate(message.Date)
                 .ToChannel(options.Destination)
                 .FromSender(message.From)
