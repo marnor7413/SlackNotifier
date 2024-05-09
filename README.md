@@ -22,7 +22,7 @@ Prerequisites: Slack account
 1. Login to Slack and go to https://api.slack.com/apps. Create an App in slack.
 2. Click on Basic information > Add features
    - Click to setup Bots. 
-   - Click to setup Permissions. Copy token from _OAuth Tokens for Your Workspace_ section. Under _Scopes_ section, set the bot scopes: chat:write + files:write + remote_files:write
+   - Click to setup Permissions. Copy token from _OAuth Tokens for Your Workspace_ section. Under _Scopes_ section, set the bot scopes: chat:write + files:read + files:write
 3. Create a file named **SlackSecretsDevelopment.json**. Contents of file as per below, fill in your details **\***. 
    
 ```JSON
