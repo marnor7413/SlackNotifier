@@ -25,7 +25,7 @@ public class SlackApiServiceTests : BaseTests
         var SUT = CreateSUT(httpClientFactory);
 
         // Act
-        var response = await SUT.UploadFile(formData);
+        var response = await SUT.GetUploadUrlAsync(Fixture.Create<string>(), Fixture.Create<string>(), Fixture.Create<long>());
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -48,7 +48,7 @@ public class SlackApiServiceTests : BaseTests
         var SUT = CreateSUT(httpClientFactory);
 
         // Act
-        var response = await SUT.UploadFile(formData);
+        var response = await SUT.GetUploadUrlAsync(Fixture.Create<string>(), Fixture.Create<string>(), Fixture.Create<int>());
 
         // Assert
         Assert.True(capturedRequest.Headers.Contains("Authorization"));

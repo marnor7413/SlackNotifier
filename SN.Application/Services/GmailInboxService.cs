@@ -66,7 +66,7 @@ public class GmailInboxService : IGmailInboxService
 
         if (message != null)
         {
-            //await gmailApiService.ToggleMessageToRead(emailId); //TODO: uncomment this line
+            await gmailApiService.ToggleMessageToRead(emailId);
             var email = new EmailInfo(
                 counter,
                 message.Payload.Headers.Single(x => x.Name == "Date").Value,
@@ -135,6 +135,13 @@ public class GmailInboxService : IGmailInboxService
             {
                 email.FileAttachments.AddRange(await gmailPayloadService.GetAttachments(message.Id, gmailAttachmentData));
             }
+
+            var relatedAttachments = message.Payload.Parts
+                .SingleOrDefault(x => x.MimeType == "multipart/related")?
+                .Parts
+                .Where(x => x.MimeType != "multipart/alternative") ?? Enumerable.Empty<MessagePart>();
+
+            email.RelatedFileAttachments.AddRange(await gmailPayloadService.GetAttachments(message.Id, relatedAttachments));
 
             return email.Validate() ? email : null;
         }

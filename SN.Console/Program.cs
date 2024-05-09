@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SN.Application.Builders;
 using SN.Application.Interfaces;
+using SN.Application.Services;
 using SN.ConsoleApp.Extensions;
 
 namespace MailService;
@@ -30,28 +32,29 @@ class Program
                 services.ConfigureOptionsFromAppsettings(configuration);
                 services.AddSingleton<IConfiguration>(configuration);
                 services.AddServices();
+                services.AddScoped<ISlackBlockBuilder, SlackBlockBuilder>();
+
             })
             .Build();
 
 
         _messageForwarder = host.Services.GetRequiredService<IMessageForwarderService>();
-        await _messageForwarder.Run();
-        //_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
-        
-        //Console.WriteLine("Console application started.");
-        //while (true)
-        //{
-        //    Console.WriteLine("Press Enter to exit");
-        //    var input = Console.ReadLine();
-            
-        //    if (string.IsNullOrEmpty(input))
-        //    {
-        //        host.StopAsync()
-        //            .Wait();
-        //        return;
-        //    }
-        //    Console.Clear();
-        //}
+        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
+
+        Console.WriteLine("Console application started.");
+        while (true)
+        {
+            Console.WriteLine("Press Enter to exit");
+            var input = Console.ReadLine();
+
+            if (string.IsNullOrEmpty(input))
+            {
+                host.StopAsync()
+                    .Wait();
+                return;
+            }
+            Console.Clear();
+        }
     }
 
     public static string GetEnvironment
