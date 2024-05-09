@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SN.Application.Builders;
 using SN.Application.Interfaces;
+using SN.Application.Services;
 using SN.ConsoleApp.Extensions;
 
 namespace MailService;
@@ -30,6 +32,8 @@ class Program
                 services.ConfigureOptionsFromAppsettings(configuration);
                 services.AddSingleton<IConfiguration>(configuration);
                 services.AddServices();
+                services.AddScoped<ISlackBlockBuilder, SlackBlockBuilder>();
+
             })
             .Build();
 
