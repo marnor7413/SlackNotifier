@@ -20,7 +20,7 @@ public class SlackServiceTests : BaseTests
     {
         // Assign
         var emailInfosRequest = CreateEmailInfosRequest();
-        
+
         var okHttpResponse = CreateHttpResponse(HttpStatusCode.OK);
         var apiService = Fixture.Freeze<ISlackApiService>();
         apiService.SendMessage(Arg.Any<StringContent>()).Returns(Task.FromResult(okHttpResponse));
@@ -34,8 +34,9 @@ public class SlackServiceTests : BaseTests
         apiService.CompleteUploadAsync(Arg.Any<Dictionary<string, string>>(), Arg.Any<string>())
             .Returns(Task.FromResult(okHttpResponse));
         
+        var slackBlockBuilder = SetupBuilder();
         var options = CreateOptions();
-        var SUT = new SlackService(apiService, options);
+        var SUT = new SlackService(apiService, slackBlockBuilder, options);
 
         // Act
         var result = await SUT.SendMessage(emailInfosRequest);
@@ -53,8 +54,9 @@ public class SlackServiceTests : BaseTests
         var apiService = Fixture.Freeze<ISlackApiService>();
         apiService.SendMessage(Arg.Any<StringContent>()).Throws<Exception>();
 
+        var slackBlockBuilder = SetupBuilder();
         var options = CreateOptions();
-        var SUT = new SlackService(apiService, options);
+        var SUT = new SlackService(apiService, slackBlockBuilder, options);
 
         // Act
         var result = await SUT.SendMessage(emailInfosRequest);
@@ -71,20 +73,37 @@ public class SlackServiceTests : BaseTests
 
         var sendMessageResponse = CreateHttpResponse(HttpStatusCode.OK);
         var apiService = Fixture.Freeze<ISlackApiService>();
-        apiService.SendMessage(Arg.Any<StringContent>()).Returns(Task.FromResult(sendMessageResponse));
-
+        apiService
+            .SendMessage(Arg.Any<StringContent>())
+            .Returns(Task.FromResult(sendMessageResponse));
         apiService
             .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<long>())
             .Throws<Exception>();
 
+        var slackBlockBuilder = SetupBuilder();
         var options = CreateOptions();
-        var SUT = new SlackService(apiService, options);
+        var SUT = new SlackService(apiService, slackBlockBuilder, options);
 
         // Act
         var result = await SUT.SendMessage(emailInfosRequest);
 
         // Assert
         result.Should().BeFalse();
+    }
+
+    private ISlackBlockBuilder SetupBuilder()
+    {
+        var slackBlockBuilder = Fixture.Freeze<ISlackBlockBuilder>();
+        slackBlockBuilder.WithDivider().Returns(slackBlockBuilder);
+        slackBlockBuilder.WithHeaderTitle(Arg.Any<string>()).Returns(slackBlockBuilder);
+        slackBlockBuilder.WithMessageBody(Arg.Any<string>()).Returns(slackBlockBuilder);
+        slackBlockBuilder.WithSendDate(Arg.Any<string>()).Returns(slackBlockBuilder);
+        slackBlockBuilder.ToChannel(Arg.Any<string>()).Returns(slackBlockBuilder);
+        slackBlockBuilder.FromSender(Arg.Any<string>()).Returns(slackBlockBuilder);
+        slackBlockBuilder.WithSubject(Arg.Any<string>()).Returns(slackBlockBuilder);
+        slackBlockBuilder.WithRelatedFiles(Arg.Any<Dictionary<string, string>>()).Returns(slackBlockBuilder);
+        slackBlockBuilder.Build().Returns(new StringContent(new JsonObject().ToString(), Encoding.UTF8));
+        return slackBlockBuilder;
     }
 
     private List<EmailInfo> CreateEmailInfosRequest()
