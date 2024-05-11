@@ -9,11 +9,16 @@ public class SlackBlockBuilder : ISlackBlockBuilder
 {
     //private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/128/9586/9586178.png";
     //private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/128/236/236351.png";
-    private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/256/12406/12406800.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
+    //private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/256/12406/12406800.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
+    private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/256/10148/10148873.png?ga=GA1.1.1928895700.1714931280";
+   
     //private readonly string emailIconUrl = "https://cdn-icons-png.freepik.com/128/5068/5068746.png";
-    private readonly string emailIconUrl = "https://cdn-icons-png.freepik.com/256/11144/11144648.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
+    //private readonly string emailIconUrl = "https://cdn-icons-png.freepik.com/256/11144/11144648.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
+    private readonly string emailIconUrl = "https://cdn-icons-png.freepik.com/256/10270/10270927.png?ga=GA1.1.1928895700.1714931280";
+    
     //private readonly string subjectIcon = "https://cdn-icons-png.freepik.com/128/9821/9821502.png";
-    private readonly string subjectIcon = "https://cdn-icons-png.freepik.com/256/511/511605.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
+    //private readonly string subjectIcon = "https://cdn-icons-png.freepik.com/256/511/511605.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
+    private readonly string subjectIcon = "https://cdn-icons-png.freepik.com/256/10819/10819674.png?ga=GA1.1.1928895700.1714931280";
     
     private Blocks root = new Blocks();
     private ContextBlock sentAtDate = null;
@@ -23,8 +28,17 @@ public class SlackBlockBuilder : ISlackBlockBuilder
     private string messageBody = string.Empty;
     private Dictionary<string,string> relatedFiles = new();
     
+    public void Clear()
+    {
+        root = new Blocks();
+        sentAtDate = null;
+        sender = null;
+        subject = null;
+        messageBody = string.Empty;
+        relatedFiles = new Dictionary<string, string>();
+    }
 
-    public ISlackBlockBuilder ToChannel(string channel)
+public ISlackBlockBuilder ToChannel(string channel)
     {
         root.channel = channel;
 
@@ -48,14 +62,14 @@ public class SlackBlockBuilder : ISlackBlockBuilder
 
     public ISlackBlockBuilder WithSendDate(string date)
     {
-        sentAtDate = new ContextBlock(calendarIconUrl, $"*Skickat: {DateTime.Parse(date).ToLocalTime()}*");
+        sentAtDate = new ContextBlock(calendarIconUrl, $"*Skickat:* {DateTime.Parse(date).ToLocalTime()}");
 
         return this;
     }
     
     public ISlackBlockBuilder FromSender(string sender)
     {
-        this.sender = new ContextBlock(emailIconUrl, $"*Från: {FormatEmailLinkInFromText(sender)}*");
+        this.sender = new ContextBlock(emailIconUrl, $"*Från:* {FormatEmailLinkInFromText(sender)}");
 
         return this;
     }
