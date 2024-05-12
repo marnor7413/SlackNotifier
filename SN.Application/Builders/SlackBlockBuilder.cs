@@ -22,8 +22,9 @@ public class SlackBlockBuilder : ISlackBlockBuilder
     
     private Blocks root = new Blocks();
     private ContextBlock sentAtDate = null;
-    private ContextBlock sender = null;
-    private ContextBlock subject = null;
+    private ContextBlock senderName = null;
+    private ContextBlock senderEmail = null;
+    private SectionBlock subject = null;
     
     private string messageBody = string.Empty;
     private Dictionary<string,string> relatedFiles = new();
@@ -32,13 +33,14 @@ public class SlackBlockBuilder : ISlackBlockBuilder
     {
         root = new Blocks();
         sentAtDate = null;
-        sender = null;
+        senderName = null;
+        senderEmail = null;
         subject = null;
         messageBody = string.Empty;
         relatedFiles = new Dictionary<string, string>();
     }
 
-public ISlackBlockBuilder ToChannel(string channel)
+    public ISlackBlockBuilder ToChannel(string channel)
     {
         root.channel = channel;
 
@@ -126,8 +128,13 @@ public ISlackBlockBuilder ToChannel(string channel)
     private string GenerateJsonString()
     {
         if (sentAtDate is not null) root.blocks.Add(sentAtDate);
-        if (sender is not null) root.blocks.Add(sender);
-        if (subject is not null) root.blocks.Add(subject);
+        if (senderName is not null) root.blocks.Add(senderName);
+        if (senderEmail is not null) root.blocks.Add(senderEmail);
+        if (subject is not null) 
+        {
+            root.blocks.Add(new DividerBlock());
+            root.blocks.Add(subject);
+        }
 
         var containsEmbeddedImage = relatedFiles.Any();
         if (containsEmbeddedImage)
@@ -150,6 +157,7 @@ public ISlackBlockBuilder ToChannel(string channel)
             root.blocks.Add(new SectionBlock(messageBody));
         }
 
+        root.blocks.Add(new DividerBlock());
         var stringJsonObject = JsonConvert.SerializeObject(root);
 
         return stringJsonObject;
@@ -200,6 +208,21 @@ public ISlackBlockBuilder ToChannel(string channel)
         }
 
         return text;
+    }
+
+    private string ExtractEmail(string formattedText)
+    {
+        var emailPattern = @"<mailto:(.*?)\|.*?>";
+        var regExMatch = Regex.Match(formattedText, emailPattern);
+        if (regExMatch.Success)
+        {
+            var emailLink = regExMatch.Value;
+            return emailLink;
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 
     private class Blocks
