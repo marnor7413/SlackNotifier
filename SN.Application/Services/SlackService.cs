@@ -73,7 +73,7 @@ public class SlackService : ISlackService
                 else
                 {
                     blockBuilder = slackBlockBuilder
-                        .WithHeaderTitle("Mail vidarebefodrat från orgrytetorp@gmail.com:")
+                        .WithHeaderTitle("_Nytt mail mottaget på orgrytetorp@gmail.com_")
                         .WithSendDate(message.Date)
                         .FromSender(message.From)
                         .WithSubject(message.Subject)
