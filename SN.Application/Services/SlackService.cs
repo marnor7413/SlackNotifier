@@ -13,6 +13,8 @@ public class SlackService : ISlackService
     private readonly ISlackApiService slackApiService;
     private readonly ISlackBlockBuilder slackBlockBuilder;
     private readonly SecretsOptions options;
+    private ISlackBlockBuilder blockBuilder;
+    private readonly int maxAmountOfCharacters = 3000;
 
     private enum Operation
     {
@@ -35,18 +37,20 @@ public class SlackService : ISlackService
         foreach (var message in messages)
         {
             var messageThread = string.Empty;
+            var splitMessage = new List<string>();
+            if (message.PlainTextBody.ToCharArray().Length > maxAmountOfCharacters)
+            {
+                splitMessage = SplitTextIntoChunks(message.PlainTextBody, maxAmountOfCharacters);
+            }
+            else
+            {
+                splitMessage.Add(message.PlainTextBody);
+            }
 
-            var blockBuilder = slackBlockBuilder
-                .WithHeaderTitle("Mail vidarebefodrat från orgrytetorp@gmail.com:")
-                .WithSendDate(message.Date)
-                .ToChannel(options.Destination)
-                .FromSender(message.From)
-                .WithSubject(message.Subject)
-                .WithMessageBody(message.PlainTextBody);
-
+            var uploadedRelatedFiles = new Dictionary<string, string>();
             if (message.RelatedFileAttachments.Any())
             {
-                (uploadFilesResult, var uploadedRelatedFiles) = await UploadFiles(message.From, message.RelatedFileAttachments);
+                (uploadFilesResult, uploadedRelatedFiles) = await UploadFiles(message.From, message.RelatedFileAttachments);
                 if (!uploadFilesResult)
                 {
                     foreach (var item in uploadedRelatedFiles)
@@ -56,19 +60,46 @@ public class SlackService : ISlackService
 
                     return uploadFilesResult;
                 }
-
-                blockBuilder.WithRelatedFiles(uploadedRelatedFiles);
             }
 
-            var requestBody = blockBuilder.Build();
+            var requestBodiesToSend = new List<StringContent>();
+            for (int i = 0; i < splitMessage.Count; i++)
+            {
+                if (i > 0)
+                {
+                    slackBlockBuilder.Clear();
+                    blockBuilder = slackBlockBuilder.WithMessageBody(splitMessage[i]);
+                }
+                else
+                {
+                    blockBuilder = slackBlockBuilder
+                        .WithHeaderTitle("_Nytt mail mottaget på orgrytetorp@gmail.com_")
+                        .WithSendDate(message.Date)
+                        .FromSender(message.From)
+                        .WithSubject(message.Subject)
+                        .WithMessageBody(splitMessage[i]);
+                }
 
-            HttpResponseMessage sendMessageResponse;
+                blockBuilder.ToChannel(options.Destination);
+
+                if (uploadedRelatedFiles.Any())
+                {
+                    blockBuilder.WithRelatedFiles(uploadedRelatedFiles);
+                }
+                requestBodiesToSend.Add(blockBuilder.Build());
+            }
+
+            HttpResponseMessage sendMessageResponse = null;
             dynamic sendMessageResponseInfo;
             try
             {
-                sendMessageResponse = await slackApiService.SendMessage(requestBody);
-                sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
-                messageThread = (string)sendMessageResponseInfo.ts;
+                foreach (var requestBody in requestBodiesToSend)
+                {
+                    await Task.Delay(1000);
+                    sendMessageResponse = await slackApiService.SendMessage(requestBody);
+                    sendMessageResponseInfo = await sendMessageResponse.ExtractResponseDataFromHttpResponseMessage();
+                    messageThread = (string)sendMessageResponseInfo.ts;
+                }
             }
             catch (Exception)
             {
@@ -86,6 +117,52 @@ public class SlackService : ISlackService
         }
 
         return uploadFilesResult;
+    }
+
+    private List<string> SplitTextIntoChunks(string text, int maxChunkLength)
+    {
+        const string space = " ";
+        const int lineBreakCharacterCount = 2;
+        const int spaceCount = 1;
+        const string lineBreakCharacters = "\r\n";
+        List<string> chunks = new List<string>();
+        string[] lines = text.Split(new string[] { lineBreakCharacters }, StringSplitOptions.None);
+
+        string currentChunk = string.Empty;
+        foreach (string line in lines)
+        {
+            if (line.StartsWith(">"))
+            {
+                if (currentChunk.Length + line.Length + lineBreakCharacterCount > maxChunkLength)
+                {
+                    chunks.Add(currentChunk);
+                    currentChunk = string.Empty;
+                }
+                currentChunk += line + lineBreakCharacters;
+            }
+            else
+            {
+                string[] words = line.Split(' ');
+                foreach (string word in words)
+                {
+                    if (currentChunk.Length + word.Length + spaceCount > maxChunkLength)
+                    {
+                        chunks.Add(currentChunk.TrimEnd());
+                        currentChunk = string.Empty;
+                    }
+
+                    currentChunk += (currentChunk == string.Empty ? string.Empty : space) + word;
+                }
+                currentChunk += lineBreakCharacters;
+            }
+        }
+
+        if (currentChunk != string.Empty)
+        {
+            chunks.Add(currentChunk.TrimEnd()); 
+        }
+
+        return chunks;
     }
 
     private async Task<(bool, Dictionary<string, string>)> UploadFiles(string sender, List<FileAttachment> attachments, string messageThread = null)

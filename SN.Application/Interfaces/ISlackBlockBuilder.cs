@@ -5,6 +5,7 @@ namespace SN.Application.Interfaces;
 public interface ISlackBlockBuilder
 {
     StringContent Build();
+    void Clear();
     ISlackBlockBuilder FromSender(string sender);
     ISlackBlockBuilder ToChannel(string channel);
     ISlackBlockBuilder WithDivider();

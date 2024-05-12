@@ -7,22 +7,29 @@ namespace SN.Application.Builders;
 
 public class SlackBlockBuilder : ISlackBlockBuilder
 {
-    //private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/128/9586/9586178.png";
-    //private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/128/236/236351.png";
-    private readonly string calendarIconUrl = "https://cdn-icons-png.freepik.com/256/12406/12406800.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
-    //private readonly string emailIconUrl = "https://cdn-icons-png.freepik.com/128/5068/5068746.png";
-    private readonly string emailIconUrl = "https://cdn-icons-png.freepik.com/256/11144/11144648.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
-    //private readonly string subjectIcon = "https://cdn-icons-png.freepik.com/128/9821/9821502.png";
-    private readonly string subjectIcon = "https://cdn-icons-png.freepik.com/256/511/511605.png?ga=GA1.1.1928895700.1714931280&semt=ais_hybrid";
+    private readonly string timeSentIconUri = "https://cdn-icons-png.freepik.com/256/10140/10140939.png?ga=GA1.1.1928895700.1714931280";
+    private readonly string nameIconuri = "https://cdn-icons-png.freepik.com/256/12373/12373258.png?ga=GA1.1.1928895700.1714931280";
+    private readonly string emailIconUri = "https://cdn-icons-png.freepik.com/256/10140/10140847.png?ga=GA1.1.1928895700.1714931280";
     
     private Blocks root = new Blocks();
     private ContextBlock sentAtDate = null;
-    private ContextBlock sender = null;
-    private ContextBlock subject = null;
+    private ContextBlock senderName = null;
+    private ContextBlock senderEmail = null;
+    private SectionBlock subject = null;
     
     private string messageBody = string.Empty;
     private Dictionary<string,string> relatedFiles = new();
     
+    public void Clear()
+    {
+        root = new Blocks();
+        sentAtDate = null;
+        senderName = null;
+        senderEmail = null;
+        subject = null;
+        messageBody = string.Empty;
+        relatedFiles = new Dictionary<string, string>();
+    }
 
     public ISlackBlockBuilder ToChannel(string channel)
     {
@@ -33,8 +40,7 @@ public class SlackBlockBuilder : ISlackBlockBuilder
 
     public ISlackBlockBuilder WithHeaderTitle(string header)
     {
-        root.blocks.Add(new HeaderBlock(header));
-        root.blocks.Add(new DividerBlock());
+        root.blocks.Add(new SectionBlock(header));
 
         return this;
     }
@@ -48,28 +54,37 @@ public class SlackBlockBuilder : ISlackBlockBuilder
 
     public ISlackBlockBuilder WithSendDate(string date)
     {
-        sentAtDate = new ContextBlock(calendarIconUrl, $"*Skickat: {DateTime.Parse(date).ToLocalTime()}*");
+        sentAtDate = new ContextBlock(timeSentIconUri, $"*Skickat:* {DateTime.Parse(date).ToLocalTime()}");
 
         return this;
     }
     
     public ISlackBlockBuilder FromSender(string sender)
     {
-        this.sender = new ContextBlock(emailIconUrl, $"*Från: {FormatEmailLinkInFromText(sender)}*");
+        var formattedText = FormatEmailLinkInFromText(sender);
+        var email = ExtractEmail(formattedText);
+        var name = formattedText
+            .Replace(email, string.Empty)
+            .Replace("\"", string.Empty)
+            .Replace("\\", string.Empty);
+
+        senderName = new ContextBlock(nameIconuri, $"*Från:* {name}");
+        senderEmail = new ContextBlock(emailIconUri, $"*Email:* {email}");
 
         return this;
     }
     
     public ISlackBlockBuilder WithSubject(string subject)
     {
-        this.subject = new ContextBlock(subjectIcon, $"*Ämne: {subject}*");
+        this.subject = new SectionBlock($":slack: _*Ämne: {subject}*_");
 
         return this;
     }
 
     public ISlackBlockBuilder WithMessageBody(string messageBody)
     {
-        this.messageBody = messageBody;
+        string noAdditionalLineBreaks = Regex.Replace(messageBody, @"(\r\n){3,}", "\r\n\r\n");
+        this.messageBody = noAdditionalLineBreaks;
 
         return this;
     }
@@ -103,8 +118,13 @@ public class SlackBlockBuilder : ISlackBlockBuilder
     private string GenerateJsonString()
     {
         if (sentAtDate is not null) root.blocks.Add(sentAtDate);
-        if (sender is not null) root.blocks.Add(sender);
-        if (subject is not null) root.blocks.Add(subject);
+        if (senderName is not null) root.blocks.Add(senderName);
+        if (senderEmail is not null) root.blocks.Add(senderEmail);
+        if (subject is not null) 
+        {
+            root.blocks.Add(new DividerBlock());
+            root.blocks.Add(subject);
+        }
 
         var containsEmbeddedImage = relatedFiles.Any();
         if (containsEmbeddedImage)
@@ -127,6 +147,7 @@ public class SlackBlockBuilder : ISlackBlockBuilder
             root.blocks.Add(new SectionBlock(messageBody));
         }
 
+        root.blocks.Add(new DividerBlock());
         var stringJsonObject = JsonConvert.SerializeObject(root);
 
         return stringJsonObject;
@@ -177,6 +198,21 @@ public class SlackBlockBuilder : ISlackBlockBuilder
         }
 
         return text;
+    }
+
+    private string ExtractEmail(string formattedText)
+    {
+        var emailPattern = @"<mailto:(.*?)\|.*?>";
+        var regExMatch = Regex.Match(formattedText, emailPattern);
+        if (regExMatch.Success)
+        {
+            var emailLink = regExMatch.Value;
+            return emailLink;
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 
     private class Blocks
