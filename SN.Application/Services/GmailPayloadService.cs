@@ -38,6 +38,11 @@ public class GmailPayloadService : IGmailPayloadService
     
     public IEnumerable<MessagePart> GetAttachmentData(IList<MessagePart> parts)
     {
+        if(parts is not IList<MessagePart>)
+        {
+            return Enumerable.Empty<MessagePart>();
+        }
+
         return parts.Where(x => FileExtension.SupportedSlackFileTypes.Contains(x.MimeType)
             && !string.IsNullOrWhiteSpace(x.Filename));
     }
