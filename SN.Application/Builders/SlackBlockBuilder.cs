@@ -69,7 +69,15 @@ public ISlackBlockBuilder ToChannel(string channel)
     
     public ISlackBlockBuilder FromSender(string sender)
     {
-        this.sender = new ContextBlock(emailIconUrl, $"*Från:* {FormatEmailLinkInFromText(sender)}");
+        var formattedText = FormatEmailLinkInFromText(sender);
+        var email = ExtractEmail(formattedText);
+        var name = formattedText
+            .Replace(email, string.Empty)
+            .Replace("\"", string.Empty)
+            .Replace("\\", string.Empty);
+
+        senderName = new ContextBlock(nameIconuri, $"*Från:* {name}");
+        senderEmail = new ContextBlock(emailIconUri, $"*Email:* {email}");
 
         return this;
     }
@@ -83,7 +91,8 @@ public ISlackBlockBuilder ToChannel(string channel)
 
     public ISlackBlockBuilder WithMessageBody(string messageBody)
     {
-        this.messageBody = messageBody;
+        string noAdditionalLineBreaks = Regex.Replace(messageBody, @"(\r\n){3,}", "\r\n\r\n");
+        this.messageBody = noAdditionalLineBreaks;
 
         return this;
     }
