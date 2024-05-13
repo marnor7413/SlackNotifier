@@ -5,7 +5,6 @@ pipeline {
 		USER_DESKTOP_DIR = 'C:\\Users\\noren_2c3vh71\\Desktop'
 		ASPNETCOREENVIRONMENT = ''
 		SELECTION = ''
-		BUILDCONFIGURATION = ''
     }
 	
     stages {
@@ -47,16 +46,13 @@ pipeline {
 					
 					if (SELECTION == 'Development') { 
 						echo "Environment value ${SELECTION} fetched"
-						BUILDCONFIGURATION = 'Debug'
                     } else if (SELECTION == 'Production') {
 						echo "Environment value ${SELECTION} fetched"
-						BUILDCONFIGURATION = 'Release'
                     } else {
 						echo "No selection was made, setting Default as environment"
                         SELECTION = 'Default'
-						BUILDCONFIGURATION = 'Debug'
                     }
-					echo "Configuration set to ${BUILDCONFIGURATION}"
+					echo "Selection set to ${SELECTION}"
 			   }
             }
         }
@@ -69,7 +65,7 @@ pipeline {
         stage('Build') {
             steps {
 				echo 'Building application'
-                bat "dotnet build --configuration ${env.BUILDCONFIGURATION} .\\SN.Console\\SN.ConsoleApp.csproj"
+                bat "dotnet build --configuration Release .\\SN.Console\\SN.ConsoleApp.csproj"
             }
         }
         stage('Deploy') {
@@ -89,11 +85,11 @@ pipeline {
 					}
 					
 					echo 'Publishing to application'
-					bat "dotnet publish --configuration ${env.BUILDCONFIGURATION} -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
+					bat "dotnet publish --configuration Release -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
 					
-					echo 'Adding secrets to application'
+					echo "Adding secrets to application for ${env.SELECTION}"
 					echo "Copying runner batch file to desktop for user ${env.USER_DESKTOP_DIR}"
-					if (env.BUILDCONFIGURATION == 'Production') {
+					if (env.SELECTION == 'Production') {
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierProduction.bat ${env.USER_DESKTOP_DIR}"
