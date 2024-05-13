@@ -98,6 +98,7 @@ pipeline {
 					echo "Copying runner batch file to desktop for user ${env.USERFOLDER}"
 					bat "xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\Slacknotifier${env.BUILDCONFIGURATION}.bat C:\\Users\\${env.USERFOLDER}\\Desktop"
 					
+					echo 'Done!'
 				}
 			}
 		}

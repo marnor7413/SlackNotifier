@@ -23,6 +23,7 @@ class Program
                     .GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
                     ? "Development"
                     : "Production";
+                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Environment set to {environment}");
 
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
