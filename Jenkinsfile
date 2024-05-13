@@ -5,6 +5,7 @@ pipeline {
 		ASPNETCOREENVIRONMENT = ''
 		SELECTION = ''
 		BUILDCONFIGURATION = ''
+		USERFOLDER = 'noren_2c3vh71'
     }
 	
     stages {
@@ -86,11 +87,16 @@ pipeline {
 						bat "del /Q ${env.DEPLOYMENT_DIR}\\*"
 						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
+					
 					echo 'Publishing to application'
 					bat "dotnet publish --configuration ${env.BUILDCONFIGURATION} -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
-					echo 'Adding secrets to application'
-					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
 					
+					echo 'Adding secrets to application'				
+					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecrets${env.BUILDCONFIGURATION}.json ${env.DEPLOYMENT_DIR}"
+					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecrets${env.BUILDCONFIGURATION}.json ${env.DEPLOYMENT_DIR}"
+					
+					echo "Copying runner batch file to desktop for user ${env.USERFOLDER}"
+					bat "xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\Slacknotifier${env.BUILDCONFIGURATION}.bat C:\Users\${env.USERFOLDER}\Desktop"
 				}
 			}
 		}
