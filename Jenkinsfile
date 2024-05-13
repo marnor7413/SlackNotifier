@@ -88,7 +88,7 @@ pipeline {
 					bat "dotnet publish --configuration Release -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
 					
 					echo "Adding secrets to application for ${SELECTION}"
-					echo "Copying runner batch file to desktop into ${env.USER_DESKTOP_DESTINATION"
+					echo "Copying runner batch file to desktop into ${env.USER_DESKTOP_DESTINATION}"
 					if (SELECTION == 'Production') {
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsProduction.json ${env.DEPLOYMENT_DIR}"
