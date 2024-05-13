@@ -2,10 +2,10 @@ pipeline {
     agent any
 	environment {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
+		USER_DESKTOP_DIR = 'C:\\Users\\noren_2c3vh71\\Desktop'
 		ASPNETCOREENVIRONMENT = ''
 		SELECTION = ''
 		BUILDCONFIGURATION = ''
-		USERFOLDER = 'noren_2c3vh71'
     }
 	
     stages {
@@ -91,12 +91,20 @@ pipeline {
 					echo 'Publishing to application'
 					bat "dotnet publish --configuration ${env.BUILDCONFIGURATION} -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
 					
-					echo 'Adding secrets to application'				
-					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecrets${env.BUILDCONFIGURATION}.json ${env.DEPLOYMENT_DIR}"
-					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecrets${env.BUILDCONFIGURATION}.json ${env.DEPLOYMENT_DIR}"
+					echo 'Adding secrets to application'
+					echo "Copying runner batch file to desktop for user ${env.USER_DESKTOP_DIR}"
+					if (${env.BUILDCONFIGURATION} == 'Production) {
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsProduction.json ${env.DEPLOYMENT_DIR}"
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsProduction.json ${env.DEPLOYMENT_DIR}"
+						bat "xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierProduction.bat ${env.USER_DESKTOP_DIR}"
+					} else {
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsDevelopment.json ${env.DEPLOYMENT_DIR}"
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsDevelopment.json ${env.DEPLOYMENT_DIR}"
+						bat "xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierDevelopment.bat ${env.USER_DESKTOP_DIR}"
+					}					
 					
-					echo "Copying runner batch file to desktop for user ${env.USERFOLDER}"
-					bat "xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\Slacknotifier${env.BUILDCONFIGURATION}.bat C:\\Users\\${env.USERFOLDER}\\Desktop"
+					
+					
 					
 					echo 'Done!'
 				}
