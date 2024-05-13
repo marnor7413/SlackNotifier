@@ -93,7 +93,7 @@ pipeline {
 					
 					echo 'Adding secrets to application'
 					echo "Copying runner batch file to desktop for user ${env.USER_DESKTOP_DIR}"
-					if (${env.BUILDCONFIGURATION} == 'Production) {
+					if (${env.BUILDCONFIGURATION} == 'Production') {
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierProduction.bat ${env.USER_DESKTOP_DIR}"
