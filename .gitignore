@@ -480,3 +480,4 @@ $RECYCLE.BIN/
 SN.Console/SlackSecrets*.json
 SN.Console/GoogleSecrets*.json
 SN.Console/token.json/Google.Apis.Auth.OAuth2.Responses.TokenResponse-user
+config.zip
