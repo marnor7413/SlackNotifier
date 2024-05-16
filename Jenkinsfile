@@ -2,9 +2,9 @@ pipeline {
     agent any
 	environment {
         DEPLOYMENT_DIR = 'C:\\deploy\\Slacknotifier'
+		USER_DESKTOP_DESTINATION = 'C:\\Users\\noren_2c3vh71\\Desktop\\Slacknotifier.bat'
 		ASPNETCOREENVIRONMENT = ''
 		SELECTION = ''
-		BUILDCONFIGURATION = ''
     }
 	
     stages {
@@ -46,16 +46,13 @@ pipeline {
 					
 					if (SELECTION == 'Development') { 
 						echo "Environment value ${SELECTION} fetched"
-						BUILDCONFIGURATION = 'Debug'
                     } else if (SELECTION == 'Production') {
 						echo "Environment value ${SELECTION} fetched"
-						BUILDCONFIGURATION = 'Release'
                     } else {
 						echo "No selection was made, setting Default as environment"
                         SELECTION = 'Default'
-						BUILDCONFIGURATION = 'Debug'
                     }
-					echo "Configuration set to ${BUILDCONFIGURATION}"
+					echo "Selection set to ${SELECTION}"
 			   }
             }
         }
@@ -68,7 +65,7 @@ pipeline {
         stage('Build') {
             steps {
 				echo 'Building application'
-                bat "dotnet build --configuration ${env.BUILDCONFIGURATION} .\\SN.Console\\SN.ConsoleApp.csproj"
+                bat "dotnet build --configuration Release .\\SN.Console\\SN.ConsoleApp.csproj"
             }
         }
         stage('Deploy') {
@@ -86,11 +83,23 @@ pipeline {
 						bat "del /Q ${env.DEPLOYMENT_DIR}\\*"
 						bat "for /D %%p in (${env.DEPLOYMENT_DIR}\\*) do rmdir /S /Q %%p"
 					}
-					echo 'Publishing to application'
-					bat "dotnet publish --configuration ${env.BUILDCONFIGURATION} -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
-					echo 'Adding secrets to application'
-					bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\* ${env.DEPLOYMENT_DIR}"
 					
+					echo 'Publishing to application'
+					bat "dotnet publish --configuration Release -o ${env.DEPLOYMENT_DIR} .\\SN.Console\\SN.ConsoleApp.csproj"
+					
+					echo "Adding secrets to application for ${SELECTION}"
+					echo "Copying runner batch file to desktop into ${env.USER_DESKTOP_DESTINATION}"
+					if (SELECTION == 'Production') {
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsProduction.json ${env.DEPLOYMENT_DIR}"
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsProduction.json ${env.DEPLOYMENT_DIR}"
+						bat "echo f | xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierProduction.bat ${env.USER_DESKTOP_DESTINATION}"
+					} else {
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsDevelopment.json ${env.DEPLOYMENT_DIR}"
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsDevelopment.json ${env.DEPLOYMENT_DIR}"
+						bat "echo f | xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierDevelopment.bat ${env.USER_DESKTOP_DESTINATION}"
+					}					
+
+					echo 'Done!'
 				}
 			}
 		}
