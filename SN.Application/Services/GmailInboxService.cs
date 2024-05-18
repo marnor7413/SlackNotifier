@@ -82,10 +82,10 @@ public class GmailInboxService : IGmailInboxService
                 return null;
             }
 
-            if (message.Payload.Parts is null && message.Payload.Body is not null)
+            if (message.Payload is { Parts: null, Body: not null} && message.Payload.MimeType == MimeType.Html.Name )
             {
                 email = email.SetMessageBody(
-                    gmailPayloadService.GetText(message.Payload),
+                    gmailPayloadService.GetTextFromHtml(message.Payload),
                     gmailPayloadService.GetText(message.Payload));
             }
             else if (messageTypeService.IsMessageWithIphonePagesAttachment(message))
@@ -100,9 +100,19 @@ public class GmailInboxService : IGmailInboxService
             }
             else if (messageTypeService.IsAPlainTextMessage(message) || messageTypeService.IsMultiPartAlternativeMessage(message))
             {
-                email = email.SetMessageBody(
-                    gmailPayloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
-                    gmailPayloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
+                if (ShouldGeneratePlainTextFromHtmlText(message))
+                {
+                    email = email.SetMessageBody(
+                        gmailPayloadService.GetTextFromHtml(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)),
+                        gmailPayloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
+                }
+                else
+                {
+                    email = email.SetMessageBody(
+                        gmailPayloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name)),
+                        gmailPayloadService.GetText(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)));
+                }
+
             }
             else if (HasAttachmentOnly(message))
             {
@@ -153,6 +163,12 @@ public class GmailInboxService : IGmailInboxService
         }
 
         return null;
+    }
+
+    private bool ShouldGeneratePlainTextFromHtmlText(Message message)
+    {
+        return message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name) is null
+            && message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name) is not null;
     }
 
     private bool HasAttachmentOnly(Message message) => messageTypeService.IsMultiPartMixed(message) && !messageTypeService.IsMultiPartMixedAndMultiPartRelated(message);

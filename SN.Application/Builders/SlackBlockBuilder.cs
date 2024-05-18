@@ -16,10 +16,40 @@ public class SlackBlockBuilder : ISlackBlockBuilder
     private ContextBlock senderName = null;
     private ContextBlock senderEmail = null;
     private SectionBlock subject = null;
-    
+
     private string messageBody = string.Empty;
     private Dictionary<string,string> relatedFiles = new();
-    
+
+    public string CurrentSenderName 
+    { 
+        get
+        {
+            if (senderName is null ) return string.Empty;
+
+            var text = (senderName
+                .elements
+                .Single(e => e.GetType() == typeof(MarkdownBlock)) as MarkdownBlock)
+                .text;
+
+            return text;
+        }
+    }
+
+    public string CurrentSenderEmail
+    {
+        get
+        {
+            if (senderEmail is null) return string.Empty;
+
+            var text = (senderEmail
+                .elements
+                .Single(e => e.GetType() == typeof(MarkdownBlock)) as MarkdownBlock)
+                .text;
+
+            return text;
+        }
+    }
+
     public void Clear()
     {
         root = new Blocks();
@@ -62,11 +92,12 @@ public class SlackBlockBuilder : ISlackBlockBuilder
     public ISlackBlockBuilder FromSender(string sender)
     {
         var formattedText = FormatEmailLinkInFromText(sender);
-        var email = ExtractEmail(formattedText);
+        var email = ExtractEmail(formattedText).Trim();
         var name = formattedText
             .Replace(email, string.Empty)
             .Replace("\"", string.Empty)
-            .Replace("\\", string.Empty);
+            .Replace("\\", string.Empty)
+            .Trim();
 
         senderName = new ContextBlock(nameIconuri, $"*Från:* {name}");
         senderEmail = new ContextBlock(emailIconUri, $"*Email:* {email}");
@@ -195,6 +226,10 @@ public class SlackBlockBuilder : ISlackBlockBuilder
 
                 return replacedText;
             }
+        } 
+        else if (text.Contains('@'))
+        {
+            text = $"{text.Split('@')[0]} <mailto:{text}|{text}>";
         }
 
         return text;

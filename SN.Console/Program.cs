@@ -12,7 +12,7 @@ class Program
     private static IMessageForwarderService _messageForwarder;
     private static Timer _timer;
     private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-    
+    private static readonly string version = "1.0.1";
 
     static async Task Main(string[] args)
     {
@@ -24,6 +24,7 @@ class Program
                     ? "Development"
                     : "Production";
                 Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Environment set to {environment}");
+                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Starting version {version} of application.");
 
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
