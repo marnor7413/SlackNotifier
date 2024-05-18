@@ -1,7 +1,9 @@
 ﻿using Google.Apis.Gmail.v1.Data;
+using HtmlAgilityPack;
 using SN.Application.Dtos;
 using SN.Application.Interfaces;
 using SN.Core.ValueObjects;
+using System.Net;
 using System.Text;
 
 namespace SN.Application.Services;
@@ -13,6 +15,34 @@ public class GmailPayloadService : IGmailPayloadService
     public GmailPayloadService(IGmailApiService gmailApiService)
     {
         this.gmailApiService = gmailApiService;
+    }
+
+    public string GetTextFromHtml(MessagePart payload)
+    {
+        if (EmailBodyTextExists(payload))
+        {
+            try
+            {
+                var base64String = FileAttachment.Base64UrlSafeStringToBase64Standard(payload.Body.Data);
+                byte[] data = Convert.FromBase64String(base64String);
+                var htmlContent = Encoding.UTF8.GetString(data);
+
+                HtmlDocument doc = new HtmlDocument();
+                doc.LoadHtml(htmlContent);
+                
+                var plainText = ExtractPlainTextFromHtml(doc.DocumentNode);
+                var decodedText = WebUtility.HtmlDecode(plainText); // to correct &nbsp 
+                
+                return decodedText;
+            }
+            catch (Exception)
+            {
+                // no implementation
+            }
+
+        }
+
+        return string.Empty;
     }
 
     public string GetText(MessagePart payload)
@@ -68,6 +98,29 @@ public class GmailPayloadService : IGmailPayloadService
 
     private static bool EmailBodyTextExists(MessagePart payload)
     {
-        return payload.Body != null && !string.IsNullOrWhiteSpace(payload.Body.Data);
+        return payload is not null 
+            && payload.Body is not null 
+            && !string.IsNullOrWhiteSpace(payload.Body.Data);
+    }
+
+    private static string ExtractPlainTextFromHtml(HtmlNode node)
+    {
+        if (node.NodeType == HtmlNodeType.Text)
+        {
+            return node.InnerText;
+        }
+
+        if (node.NodeType == HtmlNodeType.Element && node.Name == "br")
+        {
+            return Environment.NewLine;
+        }
+
+        string result = "";
+        foreach (var child in node.ChildNodes)
+        {
+            result += ExtractPlainTextFromHtml(child);
+        }
+
+        return result;
     }
 }
