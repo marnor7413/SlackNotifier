@@ -23,37 +23,14 @@ public class GmailInboxService : IGmailInboxService
     public async Task<List<EmailInfo>> CheckForEmails()
     {
         List<Message> emailListResponse = await gmailApiService.GetListOfMessages();
-        IEnumerable<IGrouping<string, Message>> threads = emailListResponse
-            .GroupBy(x => x.ThreadId); ;
-
         int counter = 1;
         var emails = new List<EmailInfo>();
-        foreach (var thread in threads)
+        foreach (var item in emailListResponse)
         {
-            var threadMaster = thread
-                .Where(item => item.Id == item.ThreadId)
-                .ToList();
-            var threadChilds = thread
-                .Except(threadMaster)
-                .ToList();
-
-            foreach (var item in threadMaster)
-            {
-                var email = await GetEmail(item.Id, counter++);
-
-                if (email is null) continue;
-
-                emails.Add(email);
-            }
-
-            foreach (var item in threadChilds)
-            {
-                var email = await GetEmail(item.Id, counter++);
-
-                if (email is null) continue;
-
-                emails.Add(email);
-            }
+            var email = await GetEmail(item.Id, counter++);
+            if (email is null) continue;
+            
+            emails.Add(email);
         }
 
         return emails;
