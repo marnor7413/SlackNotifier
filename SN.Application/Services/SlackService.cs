@@ -116,6 +116,7 @@ public class SlackService : ISlackService
             }
         }
 
+        messages.Clear();
         return uploadFilesResult;
     }
 

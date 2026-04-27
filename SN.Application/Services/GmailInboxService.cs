@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Gmail.v1.Data;
+using HtmlAgilityPack;
 using SN.Application.Dtos;
 using SN.Application.Interfaces;
 using SN.Core.ValueObjects;
@@ -38,7 +39,7 @@ public class GmailInboxService : IGmailInboxService
 
     private async Task<EmailInfo> GetEmail(string emailId, int counter)
     {
-        Message message;
+        Message message = null;
         message = await gmailApiService.DownloadEmail(emailId);
 
         if (message != null)
@@ -59,7 +60,10 @@ public class GmailInboxService : IGmailInboxService
                 return null;
             }
 
-            if (message.Payload is { Parts: null, Body: not null} && message.Payload.MimeType == MimeType.Html.Name )
+            //var (plainText, htmlText) = ExtractTextFromMessage(message);
+            //email.SetMessageBody(plainText, htmlText);
+
+            if (message.Payload is { Parts: null, Body: not null } && message.Payload.MimeType == MimeType.Html.Name)
             {
                 email = email.SetMessageBody(
                     gmailPayloadService.GetTextFromHtml(message.Payload),
@@ -77,7 +81,7 @@ public class GmailInboxService : IGmailInboxService
             }
             else if (messageTypeService.IsAPlainTextMessage(message) || messageTypeService.IsMultiPartAlternativeMessage(message))
             {
-                if (ShouldGeneratePlainTextFromHtmlText(message))
+                if (HasBothHtmlAndPlainTextMessageBody(message))
                 {
                     email = email.SetMessageBody(
                         gmailPayloadService.GetTextFromHtml(message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name)),
@@ -142,7 +146,38 @@ public class GmailInboxService : IGmailInboxService
         return null;
     }
 
-    private bool ShouldGeneratePlainTextFromHtmlText(Message message)
+    private (string plainText, string htmlText) ExtractTextFromMessage(Message message)
+    {
+        MessagePart plainTextData;
+        MessagePart htmlTextData;
+        string plainText;
+        string htmlText;
+
+        plainTextData = message.Payload.Parts
+            .SelectMany(x => x.Parts)
+            .SelectMany(x => x.Parts)
+            .SingleOrDefault(X => X.MimeType == MimeType.Text.Name);
+        htmlTextData = message.Payload.Parts?
+            .SelectMany(x => x.Parts)
+            .SelectMany(x => x.Parts)
+            .SingleOrDefault(X => X.MimeType == MimeType.Html.Name);
+
+
+        if (htmlTextData is not null)
+        {
+            plainText = gmailPayloadService.GetTextFromHtml(htmlTextData);
+            htmlText = gmailPayloadService.GetText(htmlTextData);
+        }
+        else
+        { 
+            plainText = gmailPayloadService.GetText(plainTextData);
+            htmlText = string.Empty; // No HTML content available
+        }
+
+        return (plainText, htmlText);
+    }
+
+    private bool HasBothHtmlAndPlainTextMessageBody(Message message)
     {
         return message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Text.Name) is null
             && message.Payload.Parts.SingleOrDefault(x => x.MimeType == MimeType.Html.Name) is not null;
