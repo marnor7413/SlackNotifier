@@ -15,7 +15,7 @@ public class MessageForwarderService : IMessageForwarderService
         this.slackService = slackService;
     }
 
-    public async Task<bool> Run()
+    public async Task Run()
     {
         var emails = await gmailInboxService.CheckForEmails();
 
@@ -23,7 +23,7 @@ public class MessageForwarderService : IMessageForwarderService
         {
             Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] No new emails found.");
 
-            return false;
+            return;
         }
 
         var cleanedText = RemoveAvastAd(emails);
@@ -31,7 +31,7 @@ public class MessageForwarderService : IMessageForwarderService
         await slackService.SendMessage(cleanedText.OrderBy(x => x.Id).ToList());
         Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] {emails.Count} email(s) forwarded to Slack.S");
 
-        return true;
+        return;
     }
 
     private static List<EmailInfo> RemoveAvastAd(List<EmailInfo> emails)

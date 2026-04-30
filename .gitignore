@@ -481,3 +481,8 @@ SN.Console/SlackSecrets*.json
 SN.Console/GoogleSecrets*.json
 SN.Console/token.json/Google.Apis.Auth.OAuth2.Responses.TokenResponse-user
 config.zip
+.aider.tags.cache.v4/cache.db
+.aider.chat.history.md
+.aider.conf.yml
+.aider.input.history
+.aider.model.settings.yml
