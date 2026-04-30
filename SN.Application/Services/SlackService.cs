@@ -13,7 +13,6 @@ public class SlackService : ISlackService
     private readonly ISlackApiService slackApiService;
     private readonly ISlackBlockBuilder slackBlockBuilder;
     private readonly SecretsOptions options;
-    private ISlackBlockBuilder blockBuilder;
     private readonly int maxAmountOfCharacters = 3000;
 
     private enum Operation
@@ -67,12 +66,11 @@ public class SlackService : ISlackService
             {
                 if (i > 0)
                 {
-                    slackBlockBuilder.Clear();
-                    blockBuilder = slackBlockBuilder.WithMessageBody(splitMessage[i]);
+                    slackBlockBuilder.WithMessageBody(splitMessage[i]);
                 }
                 else
                 {
-                    blockBuilder = slackBlockBuilder
+                    slackBlockBuilder
                         .WithHeaderTitle("_Nytt mail mottaget på orgrytetorp@gmail.com_")
                         .WithSendDate(message.Date)
                         .FromSender(message.From)
@@ -80,13 +78,14 @@ public class SlackService : ISlackService
                         .WithMessageBody(splitMessage[i]);
                 }
 
-                blockBuilder.ToChannel(options.Destination);
+                slackBlockBuilder.ToChannel(options.Destination);
 
                 if (uploadedRelatedFiles.Any())
                 {
-                    blockBuilder.WithRelatedFiles(uploadedRelatedFiles);
+                    slackBlockBuilder.WithRelatedFiles(uploadedRelatedFiles);
                 }
-                requestBodiesToSend.Add(blockBuilder.Build());
+                requestBodiesToSend.Add(slackBlockBuilder.Build());
+                slackBlockBuilder.Clear();
             }
 
             HttpResponseMessage sendMessageResponse = null;

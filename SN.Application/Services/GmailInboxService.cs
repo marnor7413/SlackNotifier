@@ -1,5 +1,4 @@
 ﻿using Google.Apis.Gmail.v1.Data;
-using HtmlAgilityPack;
 using SN.Application.Dtos;
 using SN.Application.Interfaces;
 using SN.Core.ValueObjects;
