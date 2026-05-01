@@ -1,4 +1,5 @@
-﻿using SN.Application.Dtos;
+﻿using Microsoft.Extensions.Logging;
+using SN.Application.Dtos;
 using SN.Application.Interfaces;
 using System.Text.RegularExpressions;
 
@@ -8,11 +9,16 @@ public class MessageForwarderService : IMessageForwarderService
 {
     private readonly IGmailInboxService gmailInboxService;
     private readonly ISlackService slackService;
+    private readonly ILogger<IMessageForwarderService> logger;
 
-    public MessageForwarderService(IGmailInboxService gmailInboxService, ISlackService slackService)
+    public MessageForwarderService(
+        IGmailInboxService gmailInboxService, 
+        ISlackService slackService,
+        ILogger<IMessageForwarderService> logger)
     {
         this.gmailInboxService = gmailInboxService;
         this.slackService = slackService;
+        this.logger = logger;
     }
 
     public async Task Run()
@@ -21,15 +27,14 @@ public class MessageForwarderService : IMessageForwarderService
 
         if (!emails.Any())
         {
-            Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] No new emails found.");
+            logger.LogInformation("No new emails found.");
 
             return;
         }
 
         var cleanedText = RemoveAvastAd(emails);
-
         await slackService.SendMessage(cleanedText.OrderBy(x => x.Id).ToList());
-        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] {emails.Count} email(s) forwarded to Slack.S");
+        logger.LogInformation($"{emails.Count} email(s) forwarded to Slack.");
 
         return;
     }

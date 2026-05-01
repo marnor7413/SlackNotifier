@@ -5,6 +5,8 @@ using System.Text;
 using SN.Application.Interfaces;
 using SN.Application.Dtos;
 using SN.Application.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SN.UnitTests.SN.Application;
 
@@ -16,13 +18,14 @@ public class MessageForwarderServiceTests : BaseTests
         // Assign
         var gmailInboxService = SetupInboxService(Enumerable.Empty<EmailInfo>().ToList());
         var slackService = Fixture.Freeze<ISlackService>();
-        var SUT = new MessageForwarderService(gmailInboxService, slackService);
+        var logger = Substitute.For<ILogger<MessageForwarderService>>();
+        var SUT = new MessageForwarderService(gmailInboxService, slackService, logger);
 
         // Act
-        var result = await SUT.Run();
+        await SUT.Run();
 
         // Assert
-        result.Should().BeFalse();
+        AssertLogReceived(1, LogLevel.Information, logger);
         await slackService.Received(0).SendMessage(Arg.Any<List<EmailInfo>>());
     }
 
@@ -32,13 +35,14 @@ public class MessageForwarderServiceTests : BaseTests
         // Assign
         var gmailInboxService = SetupInboxService(Fixture.CreateMany<EmailInfo>(1).ToList());
         var slackService = Fixture.Freeze<ISlackService>();
-        var SUT = new MessageForwarderService(gmailInboxService, slackService);
+        var logger = Substitute.For<ILogger<MessageForwarderService>>();
+        var SUT = new MessageForwarderService(gmailInboxService, slackService, logger);
 
         // Act
-        var result = await SUT.Run();
+        await SUT.Run();
 
         // Assert
-        result.Should().BeTrue();
+        AssertLogReceived(1, LogLevel.Information, logger);
         await slackService.Received(1).SendMessage(Arg.Any<List<EmailInfo>>());
     }
 
@@ -69,7 +73,8 @@ public class MessageForwarderServiceTests : BaseTests
         List<EmailInfo> capturedMessages = null;
         await slackService.SendMessage(Arg.Do<List<EmailInfo>>(x => capturedMessages = x));
 
-        var SUT = new MessageForwarderService(gmailInboxService, slackService);
+        var logger = Substitute.For<ILogger<MessageForwarderService>>();
+        var SUT = new MessageForwarderService(gmailInboxService, slackService, NullLogger<MessageForwarderService>.Instance);
 
         // Act
         await SUT.Run();
@@ -81,6 +86,17 @@ public class MessageForwarderServiceTests : BaseTests
         CountOccurenciesOfTextStringsInText(unexpecedStrings, capturedMessages)
             .Should()
             .Be(0);
+    }
+
+    private void AssertLogReceived(int amount, LogLevel logLevel, ILogger<MessageForwarderService> logger)
+    {
+        logger.Received(amount).Log(
+            logLevel,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Any<Exception?>(),
+            Arg.Any<Func<object, Exception?, string>>()
+        );
     }
 
     private IGmailInboxService SetupInboxService(List<EmailInfo> emailInfos)

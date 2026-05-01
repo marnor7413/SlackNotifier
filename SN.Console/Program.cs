@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SN.Application.Builders;
 using SN.Application.Interfaces;
 using SN.ConsoleApp.Extensions;
@@ -10,7 +11,7 @@ namespace SN.ConsoleApp;
 
 class Program
 {
-    private static readonly string version = "1.0.2";
+    private static readonly string version = "1.1.0";
 
     static async Task Main(string[] args)
     {
@@ -18,8 +19,6 @@ class Program
             .GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
             ? "Development"
             : "Production";
-        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Environment set to {environment}");
-        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Starting version {version} of application.");
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -30,6 +29,15 @@ class Program
             .Build();
 
         using IHost host = Host.CreateDefaultBuilder(args)
+            .ConfigureLogging(logger => 
+            {
+                logger.ClearProviders();
+                logger.AddSimpleConsole(opt =>
+                {
+                    opt.SingleLine = false;
+                    opt.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+                });
+            })
             .ConfigureServices((hostContext, services) =>
             {
                 services.AddHttpClients(configuration);
@@ -41,7 +49,10 @@ class Program
             })
             .Build();
 
-        Console.WriteLine("Console application started. Press Enter to stop.");
+        var logger = host.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("---> Environment set to {Environment}", environment);
+        logger.LogInformation("---> Starting version {Version} of application.", version);
+        logger.LogInformation("---> Console application started. Press Enter to stop.");
 
         var runTask = host.RunAsync();
         await Task.Run(() => Console.ReadLine());

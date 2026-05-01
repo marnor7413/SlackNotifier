@@ -18,7 +18,7 @@ public class MessageForwarderHostedService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("MessageForwarderHostedService started.");
+        logger.LogInformation("---> MessageForwarderHostedService started.");
 
         try
         {
@@ -30,7 +30,7 @@ public class MessageForwarderHostedService : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error executing message forwarder. Retrying in {Interval}", interval);
+                    logger.LogError(ex, "---> Error executing message forwarder. Retrying in {Interval}", interval);
                 }
 
                 await Task.Delay(interval, stoppingToken);
@@ -39,7 +39,7 @@ public class MessageForwarderHostedService : BackgroundService
         catch (OperationCanceledException) { }
         finally
         {
-            logger.LogInformation("MessageForwarderHostedService stopped.");
+            logger.LogInformation("---> MessageForwarderHostedService stopped.");
         }
     }
 }
