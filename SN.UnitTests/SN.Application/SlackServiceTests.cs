@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -36,7 +37,7 @@ public class SlackServiceTests : BaseTests
         
         var slackBlockBuilder = SetupBuilder();
         var options = CreateOptions();
-        var SUT = new SlackService(apiService, slackBlockBuilder, options);
+        var SUT = new SlackService(apiService, slackBlockBuilder, options, NullLogger<SlackService>.Instance);
 
         // Act
         var result = await SUT.SendMessage(emailInfosRequest);
@@ -56,7 +57,7 @@ public class SlackServiceTests : BaseTests
 
         var slackBlockBuilder = SetupBuilder();
         var options = CreateOptions();
-        var SUT = new SlackService(apiService, slackBlockBuilder, options);
+        var SUT = new SlackService(apiService, slackBlockBuilder, options, NullLogger<SlackService>.Instance);
 
         // Act
         var result = await SUT.SendMessage(emailInfosRequest);
@@ -82,7 +83,7 @@ public class SlackServiceTests : BaseTests
 
         var slackBlockBuilder = SetupBuilder();
         var options = CreateOptions();
-        var SUT = new SlackService(apiService, slackBlockBuilder, options);
+        var SUT = new SlackService(apiService, slackBlockBuilder, options, NullLogger<SlackService>.Instance);
 
         // Act
         var result = await SUT.SendMessage(emailInfosRequest);

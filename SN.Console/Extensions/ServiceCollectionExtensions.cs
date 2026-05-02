@@ -19,12 +19,14 @@ public static class ServiceCollectionExtensions
 
     public static void AddHttpClients(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
+        serviceCollection.AddTransient<GmailApiService>();
         serviceCollection.AddHttpClient<GmailApiService>((httpClient) =>
         {
             var baseUri = configuration.GetSection(GmailBaseUriKey).Value;
             httpClient.BaseAddress = new Uri(baseUri);
         });
 
+        serviceCollection.AddTransient<SlackApiService>();
         serviceCollection.AddHttpClient<SlackApiService>((httpClient) =>
         {
             var baseUri = configuration.GetSection(SlackBaseUriKey).Value;
@@ -51,8 +53,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IIOService, IOService>();
         serviceCollection.AddScoped<IGmailServiceFactory, GmailServiceFactory>();
         serviceCollection.AddScoped<IMessageTypeService, MessageTypeService>();
-        serviceCollection.AddScoped<ISlackService, SlackService>();
-        serviceCollection.AddScoped<ISlackApiService, SlackApiService>();
+        serviceCollection.AddTransient<ISlackService, SlackService>();
+        serviceCollection.AddTransient<ISlackApiService, SlackApiService>();
     }
-
 }

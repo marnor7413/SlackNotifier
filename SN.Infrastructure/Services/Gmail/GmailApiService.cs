@@ -1,6 +1,7 @@
 ﻿using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using MailService.Infrastructure.Factories;
+using Microsoft.Extensions.Logging;
 using SN.Application.Interfaces;
 
 namespace SN.Infrastructure.Services.Gmail;
@@ -8,14 +9,16 @@ namespace SN.Infrastructure.Services.Gmail;
 public class GmailApiService : IGmailApiService
 {
     private readonly IGmailServiceFactory gmailServiceFactory;
+    private readonly ILogger<GmailApiService> logger;
     private GmailService gmailService;
 
     private const string FilterUnreadEmailsOnly = "is:unread";
     private const string InboxFolder = "INBOX";
 
-    public GmailApiService(IGmailServiceFactory gmailServiceFactory)
+    public GmailApiService(IGmailServiceFactory gmailServiceFactory, ILogger<GmailApiService> logger)
     {
         this.gmailServiceFactory = gmailServiceFactory;
+        this.logger = logger;
     }
    
     public async Task<List<Message>> GetListOfMessages()
@@ -34,7 +37,7 @@ public class GmailApiService : IGmailApiService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured. Exception message: {ex.Message}");
+            logger.LogError(ex, $"---> An unknown error occured. Exception message: {ex.Message}");
             throw;
         }
 
@@ -43,10 +46,11 @@ public class GmailApiService : IGmailApiService
 
     public async Task<Message> DownloadEmail(string emailId)
     {
+        logger.LogInformation($"---> Fetching gmail messages.");
         Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Fetching gmail messages.");
         var emailRequest = gmailService.Users.Messages.Get(GmailServiceFactory.AuthenticatedUser, emailId);
         var message = await emailRequest.ExecuteAsync();
-        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Message received.");
+        logger.LogInformation($"---> Message received.");
         
         return message;
     }

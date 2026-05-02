@@ -1,20 +1,7 @@
-﻿using AutoFixture;
-using AutoFixture.AutoNSubstitute;
+﻿namespace SN.UnitTests;
 
-namespace SN.UnitTests;
-
-public abstract class BaseTests
+public abstract class BaseTests : TestFixture
 {
-    protected Fixture Fixture;
-    private string randomText = "abc";
-
-    protected BaseTests()
-    {
-        Fixture = new Fixture();
-        Fixture.Customize(new AutoNSubstituteCustomization());
-        randomText = Fixture.Create<string>();
-    }
-
     protected string CredentialsJson = @"
     {
       ""web"": {
