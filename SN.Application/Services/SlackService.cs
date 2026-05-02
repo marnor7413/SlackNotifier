@@ -195,7 +195,10 @@ public class SlackService : ISlackService
 
                     return (false, files);
                 }
-                files.Add(item.FileName, slackGetUploadUrlResponse.FileId);
+                if(!files.ContainsKey(item.FileName))
+                {
+                    files.Add(item.FileName, slackGetUploadUrlResponse.FileId);
+                }
             }
             catch (Exception)
             {
