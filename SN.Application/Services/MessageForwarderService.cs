@@ -27,14 +27,14 @@ public class MessageForwarderService : IMessageForwarderService
 
         if (!emails.Any())
         {
-            logger.LogInformation("No new emails found.");
+            logger.LogInformation("---> No new emails found.");
 
             return;
         }
 
         var cleanedText = RemoveAvastAd(emails);
         await slackService.SendMessage(cleanedText.OrderBy(x => x.Id).ToList());
-        logger.LogInformation($"{emails.Count} email(s) forwarded to Slack.");
+        logger.LogInformation($"---> {emails.Count} email(s) forwarded to Slack.");
 
         return;
     }

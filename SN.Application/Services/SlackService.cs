@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SN.Application.Dtos;
 using SN.Application.Extensions;
 using SN.Application.Interfaces;
@@ -12,6 +13,7 @@ public class SlackService : ISlackService
 {
     private readonly ISlackApiService slackApiService;
     private readonly ISlackBlockBuilder slackBlockBuilder;
+    private readonly ILogger<SlackService> logger;
     private readonly SecretsOptions options;
     private readonly int maxAmountOfCharacters = 3000;
 
@@ -23,10 +25,12 @@ public class SlackService : ISlackService
 
     public SlackService(ISlackApiService slackApiService,
         ISlackBlockBuilder slackBlockBuilder,
-        IOptions<List<SecretsOptions>> options)
+        IOptions<List<SecretsOptions>> options,
+        ILogger<SlackService> logger)
     {
         this.slackApiService = slackApiService;
         this.slackBlockBuilder = slackBlockBuilder;
+        this.logger = logger;
         this.options = options.Value.Single(x => x.Subject == nameof(SlackService)); ;
     }
 
@@ -54,7 +58,7 @@ public class SlackService : ISlackService
                 {
                     foreach (var item in uploadedRelatedFiles)
                     {
-                        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured when trying to upload the related file {item.Value} to slack");
+                        logger.LogError($"---> An error occured when trying to upload the related file {item.Value} to slack for message from {message.From}");
                     }
 
                     return uploadFilesResult;
@@ -195,7 +199,7 @@ public class SlackService : ISlackService
             }
             catch (Exception)
             {
-                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured when trying to upload the file {item.FileName} to slack");
+                logger.LogError($"---> An unknown error occured when trying to upload the file {item.FileName} to slack.");
 
                 return (false, files);
             }
@@ -218,7 +222,7 @@ public class SlackService : ISlackService
         {
             foreach (var file in files)
             {
-                Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] An unknown error occured when trying to complete upload of the file {file.Value} to slack");
+                logger.LogError(null, null, $"---> An unknown error occured when trying to complete upload of the file {file.Value} to slack for message from {sender}");
             }
 
             return (false, files);
@@ -241,13 +245,13 @@ public class SlackService : ISlackService
     {
         var logMessage = httpResponse.IsSuccessStatusCode switch
         {
-            true when operation == Operation.Message => $"[{DateTime.Now.ToLocalTime()}] Message from {sender} sent successfully to Slack.",
-            false when operation == Operation.Message => $"[{DateTime.Now.ToLocalTime()}] Error occured when sending message from {sender} to Slack. Status code: {statusCode}",
-            true when operation == Operation.File => $"[{DateTime.Now.ToLocalTime()}] File {filename} in message from {sender} uploaded successfully to Slack.",
-            false when operation == Operation.File => $"[{DateTime.Now.ToLocalTime()}] Error uploading file {filename} in message from {sender} to Slack. Status code: {statusCode}",
-            _ => "Unknown response result in communication with Slack."
+            true when operation == Operation.Message => $"---> Message from {sender} sent successfully to Slack.",
+            false when operation == Operation.Message => $"---> Error occured when sending message from {sender} to Slack. Status code: {statusCode}",
+            true when operation == Operation.File => $"---> File {filename} in message from {sender} uploaded successfully to Slack.",
+            false when operation == Operation.File => $"---> Error uploading file {filename} in message from {sender} to Slack. Status code: {statusCode}",
+            _ => "---> Unknown response result in communication with Slack."
         };
 
-        Console.WriteLine(logMessage);
+        logger.LogInformation(logMessage);
     }
 }
