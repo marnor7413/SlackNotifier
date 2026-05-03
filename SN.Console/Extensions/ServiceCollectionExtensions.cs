@@ -55,5 +55,6 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IMessageTypeService, MessageTypeService>();
         serviceCollection.AddTransient<ISlackService, SlackService>();
         serviceCollection.AddTransient<ISlackApiService, SlackApiService>();
+        serviceCollection.AddTransient<IGmailImapService, GmailImapService>();
     }
 }
