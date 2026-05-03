@@ -22,7 +22,7 @@ public class GmailInboxServiceTests : BaseTests
             .DownloadEmail(Arg.Any<string>())
             .Returns(Task.FromResult(message));
 
-        var SUT = new GmailInboxService(gmailApiService, gmailPayloadService, messageTypeService);
+        var SUT = new GmailOauth2Service(gmailApiService, gmailPayloadService, messageTypeService);
 
         // Act
         var result = await SUT.CheckForEmails();
