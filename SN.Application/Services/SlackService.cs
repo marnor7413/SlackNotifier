@@ -176,7 +176,7 @@ public class SlackService : ISlackService
         {
             try
             {
-                var getUploadUrlResponse = await slackApiService.GetUploadUrlAsync(item.fileType, item.FileName, item.ToByteArray().Length);
+                var getUploadUrlResponse = await slackApiService.GetUploadUrlAsync(item.FileType, item.FileName, item.ToByteArray().Length);
                 var getUploadUrlResponseContent = await getUploadUrlResponse.Content.ReadAsStringAsync();
                 var slackGetUploadUrlResponse = SlackGetUploadUrlResponse.FromJson(getUploadUrlResponseContent);
                 if (!getUploadUrlResponse.IsSuccessStatusCode || !slackGetUploadUrlResponse.Ok)

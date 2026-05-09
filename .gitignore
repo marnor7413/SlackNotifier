@@ -486,3 +486,5 @@ config.zip
 .aider.conf.yml
 .aider.input.history
 .aider.model.settings.yml
+SN.Console/GoogleImapSecretsDevelopment.json
+SN.Console/GoogleImapSecretsProduction.json

@@ -1,6 +1,6 @@
 ﻿namespace SN.Application.Dtos;
 
-public record FileAttachment(string FileName, string fileType, string Description, string Data)
+public record FileAttachment(string FileName, string FileType, string Description, string Data)
 {
     private const string FileTypeIsNotSupported = "Unsupported filetype";
 
@@ -14,7 +14,7 @@ public record FileAttachment(string FileName, string fileType, string Descriptio
     public bool Validate()
     {
         if (string.IsNullOrWhiteSpace(FileName)) return false;
-        if (string.IsNullOrWhiteSpace(fileType) || fileType == FileTypeIsNotSupported) return false;
+        if (string.IsNullOrWhiteSpace(FileType) || FileType == FileTypeIsNotSupported) return false;
         if (string.IsNullOrWhiteSpace(Data)) return false;
 
         return true;

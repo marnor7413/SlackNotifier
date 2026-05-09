@@ -29,6 +29,12 @@
     <None Update="googleCredentials.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="GoogleImapSecretsDevelopment.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="GoogleImapSecretsProduction.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="GoogleSecretsDevelopment.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
