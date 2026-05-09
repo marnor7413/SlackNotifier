@@ -156,27 +156,6 @@ public class GmailApplicationPasswordServiceTests : BaseTests
         }
     }
 
-    private static MimeMessage MockEmail(string id = "1")
-    {
-        var message = new MimeMessage();
-        message.MessageId = id;
-        message.Date = DateTimeOffset.Now;
-        message.From.Add(new MailboxAddress("Martin Norén", "martinnoren@mymail.com"));
-        message.Subject = "Any subject";
-
-        var builder = new BodyBuilder
-        {
-            TextBody = "Hello world",
-            HtmlBody = "<p>Hello world</p>"
-        };
-
-        var attachmentBytes = Encoding.UTF8.GetBytes("fake pdf content");
-        builder.Attachments.Add("document.pdf", attachmentBytes, ContentType.Parse("application/pdf"));
-        message.Body = builder.ToMessageBody();
-
-        return message;
-    }
-
     private static EmailInfo ExtractDataFromEmail(MimeMessage email)
     {
         var id = email.MessageId.ToIntOrDefault();
