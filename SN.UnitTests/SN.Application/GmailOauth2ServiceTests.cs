@@ -1,4 +1,5 @@
 ﻿using AutoFixture;
+using FluentAssertions;
 using Google.Apis.Gmail.v1.Data;
 using NSubstitute;
 using SN.Application.Interfaces;
@@ -7,8 +8,19 @@ using SN.UnitTests.Factories;
 
 namespace SN.UnitTests.SN.Application;
 
-public class GmailInboxServiceTests : BaseTests
+public class GmailOauth2ServiceTests : BaseTests
 {
+    [Fact]
+    public async Task StrategyProperty_WhenCalled_ReturnsCorrectValue()
+    {
+        // Assign
+        var (gmailApiService, gmailPayloadService, messageTypeService) = SetupDependencies();
+        var SUT = new GmailOauth2Service(gmailApiService, gmailPayloadService, messageTypeService);
+
+        // Act & Assert
+        SUT.strategy.Should().Be("BrowserAuthentication");
+    }
+
     [Fact]
     public async Task CheckForEmails_WhenEmailContainsHtmlAndPlainTextAndPdfAttachment_EmailMessageBuiltUponHtmlTextAndPdfAttachmentIsFetched()
     {
