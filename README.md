@@ -5,7 +5,7 @@ Forward Gmail messages to a Slack channel
 
 #### Setup Google application password (preferred method)
 1. Log in to your google account.
-2. Go to https://myaccount.google.com/apppasswords  
+2. Go to https://myaccount.google.com/apppasswords, if this doesn't work then enable two-step verification.  
 3. Create an application password. Save the password.
 4. Create a json file called GoogleImapSecretsDevelopment.json
 5. Add the following structure:
