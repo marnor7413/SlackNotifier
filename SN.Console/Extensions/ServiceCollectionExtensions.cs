@@ -45,7 +45,8 @@ public static class ServiceCollectionExtensions
 
     public static void AddServices(this  IServiceCollection serviceCollection)
     {
-        serviceCollection.AddScoped<IGmailInboxService, GmailInboxService>();
+        serviceCollection.AddScoped<IGmailInboxService, GmailOauth2Service>();
+        serviceCollection.AddScoped<IGmailInboxService, GmailApplicationPasswordService>();
         serviceCollection.AddScoped<IMessageForwarderService, MessageForwarderService>();
         serviceCollection.AddScoped<IGmailApiService, GmailApiService>();
         serviceCollection.AddScoped<IGmailPayloadService, GmailPayloadService>();
@@ -55,5 +56,6 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IMessageTypeService, MessageTypeService>();
         serviceCollection.AddTransient<ISlackService, SlackService>();
         serviceCollection.AddTransient<ISlackApiService, SlackApiService>();
+        serviceCollection.AddTransient<IGmailImapService, GmailImapService>();
     }
 }

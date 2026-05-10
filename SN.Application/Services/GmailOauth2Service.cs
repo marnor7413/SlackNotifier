@@ -5,13 +5,15 @@ using SN.Core.ValueObjects;
 
 namespace SN.Application.Services;
 
-public class GmailInboxService : IGmailInboxService
+public class GmailOauth2Service : IGmailInboxService
 {
+    public string strategy => "BrowserAuthentication";
+
     private readonly IGmailApiService gmailApiService;
     private readonly IGmailPayloadService gmailPayloadService;
     private readonly IMessageTypeService messageTypeService;
 
-    public GmailInboxService(IGmailApiService gmailApiService,
+    public GmailOauth2Service(IGmailApiService gmailApiService,
         IGmailPayloadService gmailPayloadService,
         IMessageTypeService messageTypeService)
     {
