@@ -90,10 +90,12 @@ pipeline {
 					echo "Adding secrets to application for ${SELECTION}"
 					echo "Copying runner batch file to desktop into ${env.USER_DESKTOP_DESTINATION}"
 					if (SELECTION == 'Production') {
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleImapSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsProduction.json ${env.DEPLOYMENT_DIR}"
 						bat "echo f | xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierProduction.bat ${env.USER_DESKTOP_DESTINATION}"
 					} else {
+						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleImapSecretsDevelopment.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\GoogleSecretsDevelopment.json ${env.DEPLOYMENT_DIR}"
 						bat "xcopy /s /y c:\\deploy\\secrets\\SlackNotifier\\SlackSecretsDevelopment.json ${env.DEPLOYMENT_DIR}"
 						bat "echo f | xcopy /s /y c:\\deploy\\runner\\SlackNotifier\\SlacknotifierDevelopment.bat ${env.USER_DESKTOP_DESTINATION}"
