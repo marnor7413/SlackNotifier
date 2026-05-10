@@ -1,7 +1,32 @@
-﻿namespace SN.UnitTests;
+﻿using MimeKit;
+using System.Text;
+
+namespace SN.UnitTests;
 
 public abstract class BaseTests : TestFixture
 {
+
+    protected static MimeMessage MockEmail(string id = "1")
+    {
+        var message = new MimeMessage();
+        message.MessageId = id;
+        message.Date = DateTimeOffset.Now;
+        message.From.Add(new MailboxAddress("Martin Norén", "martinnoren@mymail.com"));
+        message.Subject = "Any subject";
+
+        var builder = new BodyBuilder
+        {
+            TextBody = "Hello world",
+            HtmlBody = "<p>Hello world</p>"
+        };
+
+        var attachmentBytes = Encoding.UTF8.GetBytes("fake pdf content");
+        builder.Attachments.Add("document.pdf", attachmentBytes, ContentType.Parse("application/pdf"));
+        message.Body = builder.ToMessageBody();
+
+        return message;
+    }
+
     protected string CredentialsJson = @"
     {
       ""web"": {

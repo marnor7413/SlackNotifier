@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SN.Application.Dtos;
 using SN.Application.Interfaces;
 using System.Text.RegularExpressions;
@@ -7,24 +8,33 @@ namespace SN.Application.Services;
 
 public class MessageForwarderService : IMessageForwarderService
 {
-    private readonly IGmailInboxService gmailInboxService;
+    private readonly Dictionary<string, IGmailInboxService> strategies;
     private readonly ISlackService slackService;
     private readonly ILogger<IMessageForwarderService> logger;
+    private readonly string strategy;
 
-    public MessageForwarderService(
-        IGmailInboxService gmailInboxService, 
+    public MessageForwarderService(IConfiguration configuration,
+        IEnumerable<IGmailInboxService> gmailInboxServices, 
         ISlackService slackService,
         ILogger<IMessageForwarderService> logger)
     {
-        this.gmailInboxService = gmailInboxService;
+        strategies = gmailInboxServices.ToDictionary(x => x.strategy, x => x);
+        strategy = configuration["GmailStrategy"];
         this.slackService = slackService;
         this.logger = logger;
     }
 
     public async Task Run()
     {
-        var emails = await gmailInboxService.CheckForEmails();
+        var gmailService = strategies.GetValueOrDefault(strategy);
+        if (gmailService is null) 
+        {
+            logger.LogWarning($"---> Strategy '{strategy}' not found.");
 
+            return;
+        }
+        
+        var emails = await gmailService.CheckForEmails();
         if (!emails.Any())
         {
             logger.LogInformation("---> No new emails found.");

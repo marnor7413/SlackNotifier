@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using MailKit.Net.Imap;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -6,12 +7,13 @@ using SN.Application.Builders;
 using SN.Application.Interfaces;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
+using static SN.Application.Services.GmailImapService;
 
 namespace SN.ConsoleApp;
 
 class Program
 {
-    private static readonly string version = "1.1.0";
+    private static readonly string version = "1.2.0";
 
     static async Task Main(string[] args)
     {
@@ -45,6 +47,7 @@ class Program
                 services.AddSingleton<IConfiguration>(configuration);
                 services.AddServices();
                 services.AddScoped<ISlackBlockBuilder, SlackBlockBuilder>();
+                services.AddTransient<IImapConnectionClient, ImapConnectionClient>();
                 services.AddHostedService<MessageForwarderHostedService>();
             })
             .Build();

@@ -47,7 +47,6 @@ public class GmailApiService : IGmailApiService
     public async Task<Message> DownloadEmail(string emailId)
     {
         logger.LogInformation($"---> Fetching gmail messages.");
-        Console.WriteLine($"[{DateTime.Now.ToLocalTime()}] Fetching gmail messages.");
         var emailRequest = gmailService.Users.Messages.Get(GmailServiceFactory.AuthenticatedUser, emailId);
         var message = await emailRequest.ExecuteAsync();
         logger.LogInformation($"---> Message received.");
