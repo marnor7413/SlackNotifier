@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="SN.Application/SN.Application.csproj" />
+  <Project Path="SN.Console/SN.ConsoleApp.csproj" />
+  <Project Path="SN.Core/SN.Core.csproj" />
+  <Project Path="SN.Infrastructure/SN.Infrastructure.csproj" />
+  <Project Path="SN.UnitTests/SN.UnitTests.csproj" />
+</Solution>

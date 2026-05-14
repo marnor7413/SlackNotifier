@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SN.Application.Builders;
 using SN.Application.Interfaces;
+using SN.Application.Services;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
 using static SN.Application.Services.GmailImapService;
