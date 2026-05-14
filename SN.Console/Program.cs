@@ -14,7 +14,7 @@ namespace SN.ConsoleApp;
 
 class Program
 {
-    private static readonly string version = "1.2.0";
+    private static readonly string version = "1.2.1";
 
     static async Task Main(string[] args)
     {
