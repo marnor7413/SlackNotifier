@@ -1,5 +1,4 @@
-﻿using MailKit.Net.Imap;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,7 +7,6 @@ using SN.Application.Interfaces;
 using SN.Application.Services;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
-using static SN.Application.Services.GmailImapService;
 
 namespace SN.ConsoleApp;
 

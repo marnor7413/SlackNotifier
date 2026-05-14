@@ -1,6 +1,4 @@
-﻿using SN.Application.Builders;
-
-namespace SN.Application.Interfaces;
+﻿namespace SN.Application.Interfaces;
 
 public interface ISlackBlockBuilder
 {
