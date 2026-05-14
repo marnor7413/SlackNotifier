@@ -13,8 +13,8 @@ build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:10.0
   script:
-    - dotnet restore slacknotifier.slnx
-    - dotnet build slacknotifier.slnx --configuration Release --no-restore
+    - dotnet restore SlackNotifier.slnx
+    - dotnet build SlackNotifier.slnx --configuration Release --no-restore
   artifacts:
     paths:
       - "**/bin/Release/"
@@ -24,7 +24,7 @@ test:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:10.0
   script:
-    - dotnet test slacknotifier.slnx --configuration Release --no-build
+    - dotnet test SlackNotifier.slnx --configuration Release --no-build
   dependencies:
     - build
 
