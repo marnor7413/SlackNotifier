@@ -9,7 +9,7 @@ using SN.Application.Interfaces;
 
 namespace SN.Application.Services;
 
-public partial class GmailImapService : IGmailImapService
+public class GmailImapService : IGmailImapService
 {
     private readonly List<MimeMessage> emails = new List<MimeMessage>();
     private readonly string googleCredentialsFilename;
