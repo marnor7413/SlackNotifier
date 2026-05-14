@@ -1,5 +1,4 @@
-﻿using MailKit.Net.Imap;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,13 +7,12 @@ using SN.Application.Interfaces;
 using SN.Application.Services;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
-using static SN.Application.Services.GmailImapService;
 
 namespace SN.ConsoleApp;
 
 class Program
 {
-    private static readonly string version = "1.2.0";
+    private static readonly string version = "1.2.1";
 
     static async Task Main(string[] args)
     {

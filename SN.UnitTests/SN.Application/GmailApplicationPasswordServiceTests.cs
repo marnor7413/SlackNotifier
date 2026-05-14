@@ -1,5 +1,4 @@
-﻿using AutoFixture;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MimeKit;
@@ -8,7 +7,6 @@ using SN.Application.Dtos;
 using SN.Application.Extensions;
 using SN.Application.Interfaces;
 using SN.Application.Services;
-using System.Text;
 
 namespace SN.UnitTests.SN.Application;
 
