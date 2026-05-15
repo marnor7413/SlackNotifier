@@ -31,17 +31,20 @@ test:
 docker:
   stage: docker
   image:
-    name: gcr.io/kaniko-project/executor:debug
+    name: moby/buildkit:rootless
     entrypoint: [""]
+  variables:
+    BUILDKITD_FLAGS: --oci-worker-no-process-sandbox
+  before_script:
+    - cat /etc/ssl/certs/harbor/harbor.crt >> /etc/ssl/certs/ca-certificates.crt
+    - mkdir -p ~/.docker
+    - echo "{\"auths\":{\"192.168.50.6\":{\"username\":\"$HARBOR_USER\",\"password\":\"$HARBOR_PASSWORD\"}}}" > ~/.docker/config.json
   script:
-    - mkdir -p /kaniko/.docker
-    - mkdir -p /kaniko/ssl/certs
-    - echo "{\"auths\":{\"192.168.50.6\":{\"username\":\"$HARBOR_USER\",\"password\":\"$HARBOR_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - cp /etc/ssl/certs/harbor/harbor.crt /kaniko/ssl/certs/harbor.crt
-    - /kaniko/executor
-      --context $CI_PROJECT_DIR
-      --dockerfile $CI_PROJECT_DIR/Dockerfile
-      --destination $HARBOR_REGISTRY/$HARBOR_PROJECT/$IMAGE_NAME:$IMAGE_TAG
-      --registry-certificate 192.168.50.6=/kaniko/ssl/certs/harbor.crt
+    - |
+      buildctl-daemonless.sh build \
+        --frontend dockerfile.v0 \
+        --local context=$CI_PROJECT_DIR \
+        --local dockerfile=$CI_PROJECT_DIR \
+        --output type=image,name=$HARBOR_REGISTRY/$HARBOR_PROJECT/$IMAGE_NAME:$IMAGE_TAG,push=true
   dependencies:
     - build
