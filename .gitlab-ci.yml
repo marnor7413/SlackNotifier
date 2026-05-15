@@ -32,9 +32,13 @@ docker:
   stage: docker
   image: docker:27
   services:
-    - docker:27-dind
+    - name: docker:27-dind
+      alias: docker
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_HOST: "tcp://docker:2376"
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/certs/client"
   before_script:
     - mkdir -p /etc/docker/certs.d/192.168.50.6
     - cp /etc/ssl/certs/harbor/harbor.crt /etc/docker/certs.d/192.168.50.6/ca.crt
