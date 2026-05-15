@@ -31,13 +31,13 @@ test:
 docker:
   stage: docker
   image:
-    name: gcr.io/kaniko-project/executor:latest
+    name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
-  before_script:
+  script:
     - mkdir -p /kaniko/.docker
+    - mkdir -p /kaniko/ssl/certs
     - echo "{\"auths\":{\"192.168.50.6\":{\"username\":\"$HARBOR_USER\",\"password\":\"$HARBOR_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - cp /etc/ssl/certs/harbor/harbor.crt /kaniko/ssl/certs/harbor.crt
-  script:
     - /kaniko/executor
       --context $CI_PROJECT_DIR
       --dockerfile $CI_PROJECT_DIR/Dockerfile
