@@ -30,20 +30,18 @@ test:
 
 docker:
   stage: docker
-  image: docker:27
-  services:
-    - name: docker:27-dind
-      alias: docker
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: "tcp://docker:2375"
+  image:
+    name: gcr.io/kaniko-project/executor:latest
+    entrypoint: [""]
   before_script:
-    - sleep 5
-    - mkdir -p /etc/docker/certs.d/192.168.50.6
-    - cp /etc/ssl/certs/harbor/harbor.crt /etc/docker/certs.d/192.168.50.6/ca.crt
-    - echo "$HARBOR_PASSWORD" | docker login $HARBOR_REGISTRY --username "$HARBOR_USER" --password-stdin
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"192.168.50.6\":{\"username\":\"$HARBOR_USER\",\"password\":\"$HARBOR_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cp /etc/ssl/certs/harbor/harbor.crt /kaniko/ssl/certs/harbor.crt
   script:
-    - docker build -t $HARBOR_REGISTRY/$HARBOR_PROJECT/$IMAGE_NAME:$IMAGE_TAG .
-    - docker push $HARBOR_REGISTRY/$HARBOR_PROJECT/$IMAGE_NAME:$IMAGE_TAG
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $HARBOR_REGISTRY/$HARBOR_PROJECT/$IMAGE_NAME:$IMAGE_TAG
+      --registry-certificate 192.168.50.6=/kaniko/ssl/certs/harbor.crt
   dependencies:
     - build
