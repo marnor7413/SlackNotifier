@@ -36,7 +36,9 @@ docker:
   variables:
     BUILDKITD_FLAGS: --oci-worker-no-process-sandbox
   before_script:
-    - cat /etc/ssl/certs/harbor/harbor.crt >> /etc/ssl/certs/ca-certificates.crt
+    - export SSL_CERT_FILE="$HOME/ca_chain.pem"
+    - cat /etc/ssl/certs/ca-certificates.crt > "$SSL_CERT_FILE"
+    - cat /etc/ssl/certs/harbor/harbor.crt >> "$SSL_CERT_FILE"
     - mkdir -p ~/.docker
     - echo "{\"auths\":{\"192.168.50.6\":{\"username\":\"$HARBOR_USER\",\"password\":\"$HARBOR_PASSWORD\"}}}" > ~/.docker/config.json
   script:
