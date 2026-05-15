@@ -122,12 +122,12 @@ public class SlackServiceTests : BaseTests
         return emailInfosRequest;
     }
 
-    private IOptions<List<SecretsOptions>> CreateOptions()
+    private IOptions<List<SlackSecretsOptions>> CreateOptions()
     {
-        var options = Substitute.For<IOptions<List<SecretsOptions>>>();
-        var secrets = new List<SecretsOptions>
+        var options = Substitute.For<IOptions<List<SlackSecretsOptions>>>();
+        var secrets = new List<SlackSecretsOptions>
         {
-            new SecretsOptions
+            new SlackSecretsOptions
             {
                 Subject = "SlackService",
                 Token = Fixture.Create<string>(),

@@ -36,12 +36,17 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    public static void ConfigureOptionsFromAppsettings(this  IServiceCollection serviceCollection, IConfiguration configuration)
+    public static void ConfigureOptionsFromAppsettings(
+      this IServiceCollection serviceCollection,
+      IConfiguration configuration)
     {
-        List<SecretsOptions> secrets = configuration.GetJsonSecrets(configuration.GetSection(SlackCredentialsKey).Value);
-        serviceCollection.AddSingleton(secrets);
-        serviceCollection.AddSingleton(provider => Options.Create(provider.GetRequiredService<List<SecretsOptions>>()));
+        serviceCollection
+            .Configure<GmailImapSecretsOptions>(configuration.GetSection("GmailImapSecrets"));
+
+        serviceCollection
+            .Configure<SlackSecretsOptions>(configuration.GetSection("SlackSecrets"));
     }
+
 
     public static void AddServices(this  IServiceCollection serviceCollection)
     {

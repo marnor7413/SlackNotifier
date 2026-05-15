@@ -1,33 +1,35 @@
 ﻿using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MimeKit;
-using Newtonsoft.Json;
 using SN.Application.Dtos;
 using SN.Application.Interfaces;
+using SN.Application.Options;
 
 namespace SN.Application.Services;
 
 public class GmailImapService : IGmailImapService
 {
-    private readonly List<MimeMessage> emails = new List<MimeMessage>();
-    private readonly string googleCredentialsFilename;
-    private readonly string AppsettingsKey = "Appsettings:GoogleImapCredentialsFilename";
-    private readonly IIOService iOService;
+    private readonly List<MimeMessage> emails = new();
+    private readonly GmailImapSecretsOptions options;
     private readonly IImapConnectionClient imapConnectionClient;
 
-    public GmailImapService(IIOService iOService, IConfiguration configuration, IImapConnectionClient imapConnectionClient)
+    public GmailImapService(
+        IImapConnectionClient imapConnectionClient,
+        IOptions<GmailImapSecretsOptions> options)
     {
-        googleCredentialsFilename = configuration.GetSection(AppsettingsKey).Value;
-        this.iOService = iOService;
+        this.options = options.Value;
         this.imapConnectionClient = imapConnectionClient;
     }
 
     public async Task<List<MimeMessage>> DownloadEmails()
     {
-        var credentials = iOService.ReadFileFromDisk(Directory.GetCurrentDirectory(), googleCredentialsFilename);
-        var secrets = JsonConvert.DeserializeObject<GoogleApplicationPasswordSecrets>(credentials);
+        var secrets = new GoogleApplicationPasswordSecrets
+        {
+            Email = options.Email,
+            Password = options.Password
+        };
         using IImapClient client = await imapConnectionClient.ConnectAsync(secrets);
 
         var uids = await client.Inbox.SearchAsync(SearchQuery.NotSeen);

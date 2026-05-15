@@ -107,9 +107,9 @@ public class SlackApiServiceTests : BaseTests
     private static SlackApiService CreateSUT(FakeHttpClientFactory httpClientFactory)
     {
         return new SlackApiService(
-            Options.Create(new List<SecretsOptions>
+            Options.Create(new List<SlackSecretsOptions>
             {
-                new SecretsOptions
+                new SlackSecretsOptions
                 {
                     Subject = nameof(SlackService),
                     Token = "testToken"
