@@ -14,7 +14,7 @@ public class SlackService : ISlackService
     private readonly ISlackApiService slackApiService;
     private readonly ISlackBlockBuilder slackBlockBuilder;
     private readonly ILogger<SlackService> logger;
-    private readonly SecretsOptions options;
+    private readonly SlackSecretsOptions options;
     private readonly int maxAmountOfCharacters = 3000;
 
     private enum Operation
@@ -25,13 +25,13 @@ public class SlackService : ISlackService
 
     public SlackService(ISlackApiService slackApiService,
         ISlackBlockBuilder slackBlockBuilder,
-        IOptions<List<SecretsOptions>> options,
+        IOptions<SlackSecretsOptions> options,
         ILogger<SlackService> logger)
     {
         this.slackApiService = slackApiService;
         this.slackBlockBuilder = slackBlockBuilder;
         this.logger = logger;
-        this.options = options.Value.Single(x => x.Subject == nameof(SlackService)); ;
+        this.options = options.Value;
     }
 
     public async Task<bool> SendMessage(List<EmailInfo> messages)
