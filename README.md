@@ -6,6 +6,7 @@ Forward Gmail messages with attachments to a Slack channel without any payment p
 SlackNotifier is a .NET application that forwards incoming emails and attachments to a Slack channel. It was built to solve a real problem: my local housing association needed a way for external parties to reach all residents without going through a manual email chain via the board. Instead of emailing the board who then forwards to everyone individually, anyone can send an email that automatically appears in the Slack workspace where all residents are members. Attachments such as meeting notices, annual reports and quotes are forwarded alongside the message, ensuring nothing gets lost. Before SlackNotifier, the board would send an email, then manually post a message in the Slack channel and either upload attachments separately or ask an admin to do it. SlackNotifier eliminates this by handling the entire flow automatically. One email is all it takes. In addition, the board can use the same email address to send out information directly to all residents, without any manual steps in Slack.
 
 While solutions like Zapier or Slack's built-in email integration can forward emails to Slack, they either come with recurring costs or lack reliable attachment support. SlackNotifier is self-hosted, free to run and handles attachments fully.
+
 The application started as a Windows-hosted service with a Jenkins pipeline for deployment. It is currently being rebuilt as a headless service for deployment in Kubernetes, using a local GitLab-to-Harbor-to-K3s pipeline.
 
 ## Architecture
@@ -18,7 +19,7 @@ The solution follows Clean Architecture with the following layers:
 - **SN.Console** — entry point, hosting and configuration
 - **SN.UnitTests** — unit tests
 
-The application runs as a .NET BackgroundService. It connects to Gmail via IMAP using MailKit with App Password authentication, avoiding the need for browser-based OAuth2 in a headless environment. Secrets are managed outside source control — via .NET user-secrets locally and Kubernetes Secrets in the target deployment.
+The application runs as a .NET BackgroundService. It connects to Gmail via IMAP using MailKit with App Password authentication, avoiding the need for browser-based OAuth2 in a headless environment. Secrets are managed outside source control, via .NET user-secrets locally and Kubernetes Secrets in the target deployment.
 
 ---
 
@@ -57,7 +58,7 @@ Secrets are never stored in source control. Choose the method that matches your 
 
 #### Running locally (Development)
 
-Secrets are managed via .NET user-secrets, which stores values in your user profile outside the repository — they are never checked in to Git.
+Secrets are managed via .NET user-secrets, which stores values in your user profile outside the repository and are never checked in to Git.
 
 Run the following commands from the `SN.Console` project folder:
 
@@ -75,7 +76,7 @@ Make sure `ASPNETCORE_ENVIRONMENT` is set to `Development` in your launch profil
 
 #### Running in Kubernetes (Production)
 
-Secrets are injected as environment variables via a Kubernetes Secret. Create a file `k8s/secret.yaml` with the following content — **do not check this file into source control**:
+Secrets are injected as environment variables via a Kubernetes Secret. Create a file `k8s/secret.yaml` with the following content. **Do not check this file into source control.**
 
 ```yaml
 apiVersion: v1
