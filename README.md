@@ -7,6 +7,8 @@ SlackNotifier is a .NET application that forwards incoming emails and attachment
 
 Instead of emailing the board who then forwards to everyone individually, anyone can send an email that automatically appears in the Slack workspace where all residents are members.
 
+In addition, the board can ensure important information reaches all residents by sending it to the same email address, which is automatically forwarded to the Slack channel.
+
 The application started as a Windows-hosted service with a Jenkins pipeline for deployment. It is currently being rebuilt as a headless service for deployment in Kubernetes, using a local GitLab-to-Harbor-to-K3s pipeline.
 
 ## Architecture
@@ -19,67 +21,112 @@ The solution follows Clean Architecture with the following layers:
 - **SN.Console** — entry point, hosting and configuration
 - **SN.UnitTests** — unit tests
 
-The application runs as a .NET BackgroundService. It connects to Gmail via IMAP using MailKit with App Password authentication, avoiding the need for browser-based OAuth2 in a headless environment. Secrets are managed outside source control and will be handled as Kubernetes Secrets in the target deployment.
+The application runs as a .NET BackgroundService. It connects to Gmail via IMAP using MailKit with App Password authentication, avoiding the need for browser-based OAuth2 in a headless environment. Secrets are managed outside source control — via .NET user-secrets locally and Kubernetes Secrets in the target deployment.
 
 ---
 
-### Installation
-#### Setup Google application password (preferred method)
+## Installation
+
+### 1. Setup Gmail — Application Password (preferred method)
+
+This is the recommended method for running the application headless, including in Kubernetes.
+
 1. Log in to your Google account.
-2. Go to https://myaccount.google.com/apppasswords, if this doesn't work then enable two-step verification.
-3. Create an application password. Save the password.
-4. Create a json file called GoogleImapSecretsDevelopment.json
-5. Add the following structure:
-```JSON
-{
-    "email": "<your email>",
-    "password": "<your google application password>"
-}
-```
-6. Copy the file to GoogleImapSecretsProduction.json, change email and password if needed.
+2. Go to https://myaccount.google.com/apppasswords. If this does not work, enable two-step verification first.
+3. Create an application password and save it.
 
-#### Optional: Setup Google Console (fallback if application password shuts down)
-Prerequisites: Gmail account + access to Google console
-1. Log in to Google Console at https://console.cloud.google.com/
-2. Create a new project
-3. Enable the Gmail API for your new project under the _Enabled APIs & Services_ menu.
-4. Click on the _Credentials_ menu, then on _Create Credentials_. Choose _OAuth Client ID_, then choose application type _desktop client_. Pick a name and save.
-5. The created credential will be listed under the Credentials menu. Click on it, and choose to download the credentials JSON.
-6. Rename the file to **GoogleSecretsDevelopment.json** and move it to the _SN.Console_ folder **\***. Make a copy of it named **GoogleSecretsProduction.json** for configuration of production settings.
-7. Click _OAuth consent_ to set up authorizations for the app, during setup add the following scopes for the Gmail API in the Scopes setup step:
-   - Non-sensitive scope: .../auth/gmail.addons.current.message.action
-   - Restricted scope: https://mail.google.com/
-   - Restricted scope: .../auth/gmail.modify
-8. On Test users setup step, add your email account to the list.
+### 2. Setup Slack
 
-#### Setup Slack
 Prerequisites: Slack account
-1. Log in to Slack and go to https://api.slack.com/apps. Create an App in Slack.
-2. Click on Basic information > Add features
-   - Click to set up Bots.
-   - Click to set up Permissions. Copy token from the _OAuth Tokens for Your Workspace_ section. Under the _Scopes_ section, set the bot scopes: chat:write + files:read + files:write
-3. Create a file named **SlackSecretsDevelopment.json**. Contents of file as per below, fill in your details **\***.
 
-```JSON
-[
-  {
-    "Subject": "SlackService",
-    "Token": "yourWorkspaceOAuthTokenToken",
-    "Destination": "channelId"
-  }
-]
+1. Log in to Slack and go to https://api.slack.com/apps. Create an App.
+2. Click on **Basic Information > Add features**:
+   - Set up Bots.
+   - Set up Permissions. Copy the token from the _OAuth Tokens for Your Workspace_ section. Under _Scopes_, set the bot scopes: `chat:write`, `files:read`, `files:write`.
+3. Choose **Install to Workspace** to enable the app.
+4. Important: Invite your bot to the channel it should post to.
+
+### 3. Choose method of fetching emails
+
+1. Open `appsettings.json`.
+2. Set `"GmailStrategy": "Headless"` to run the application headless using App Password authentication. This is required for Kubernetes.
+3. Set `"GmailStrategy": "BrowserAuthentication"` to authenticate via the browser using OAuth2. Can be used as a fallback if Google removes App Password authentication. See the **Optional: Google Console setup** section below.
+
+### 4. Configure secrets
+
+Secrets are never stored in source control. Choose the method that matches your environment.
+
+---
+
+#### Running locally (Development)
+
+Secrets are managed via .NET user-secrets, which stores values in your user profile outside the repository — they are never checked in to Git.
+
+Run the following commands from the `SN.Console` project folder:
+
+```bash
+dotnet user-secrets set "GmailImapSecrets:Email" "your-email@gmail.com"
+dotnet user-secrets set "GmailImapSecrets:Password" "your-app-password"
+dotnet user-secrets set "SlackSecrets:Subject" "SlackService"
+dotnet user-secrets set "SlackSecrets:Token" "your-slack-oauth-token"
+dotnet user-secrets set "SlackSecrets:Destination" "your-channel-id"
 ```
-4. Save the **SlackSecretsDevelopment.json** file to the _SN.Console_ folder. Make a copy named **SlackSecretsProduction.json** for configuration of production settings.
-5. Choose to _Install to Workspace_ to enable the app. A message will pop up in the channel that a new integration has been created.
-6. Important! Invite your bot to your channel.
 
-#### Choose method of fetching emails
-1. Open appsettings.json
-2. Set the following value to run the application headless: `"GmailStrategy" : "Headless"`
-3. Set the following value to run the application with OAuth2, authenticating via the browser. You will need to be logged in to your Gmail account: `"GmailStrategy" : "BrowserAuthentication"`. Can be used as fallback if Google removes application password authentication.
+Make sure `ASPNETCORE_ENVIRONMENT` is set to `Development` in your launch profile (`launchSettings.json`).
 
-#### Setup done
-Double-check that the secrets files are in the SN.Console project.
-Build and run!
+---
 
-___\* NOTE: filenames for secrets files can be changed in appsettings___
+#### Running in Kubernetes (Production)
+
+Secrets are injected as environment variables via a Kubernetes Secret. Create a file `k8s/secret.yaml` with the following content — **do not check this file into source control**:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: slacknotifier-secrets
+type: Opaque
+stringData:
+  GmailImapSecrets__Email: "your-email@gmail.com"
+  GmailImapSecrets__Password: "your-app-password"
+  SlackSecrets__Subject: "SlackService"
+  SlackSecrets__Token: "your-slack-oauth-token"
+  SlackSecrets__Destination: "your-channel-id"
+```
+
+Apply it to your cluster:
+
+```bash
+kubectl apply -f k8s/secret.yaml
+```
+
+The secret is referenced in the Deployment via `envFrom`. .NET automatically translates the `__` separator in environment variable names to `:`, matching the configuration keys the application expects.
+
+---
+
+### Optional: Setup Google Console (fallback if App Password is discontinued)
+
+Prerequisites: Gmail account + access to Google Cloud Console
+
+1. Log in to Google Console at https://console.cloud.google.com/
+2. Create a new project.
+3. Enable the Gmail API under **Enabled APIs & Services**.
+4. Click **Credentials > Create Credentials > OAuth Client ID**. Choose application type **Desktop client**, pick a name and save.
+5. Download the credentials JSON from the Credentials menu.
+6. Rename the file to `GoogleSecretsDevelopment.json` and place it in the `SN.Console` folder. Make a copy named `GoogleSecretsProduction.json` for production.
+7. Configure the OAuth consent screen and add the following Gmail API scopes:
+   - Non-sensitive: `.../auth/gmail.addons.current.message.action`
+   - Restricted: `https://mail.google.com/`
+   - Restricted: `.../auth/gmail.modify`
+8. Under **Test users**, add your Gmail account.
+
+Set `"GmailStrategy": "BrowserAuthentication"` in `appsettings.json` to use this method. The filenames for the credentials files can be changed in `appsettings.Production.json`.
+
+---
+
+### 5. Build and run
+
+```bash
+dotnet build
+dotnet run
+```
