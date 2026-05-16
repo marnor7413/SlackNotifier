@@ -1,8 +1,6 @@
-﻿using MailService.ConsoleApp.Extensions;
-using MailService.Infrastructure.Factories;
+﻿using MailService.Infrastructure.Factories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using SN.Application.Interfaces;
 using SN.Application.Options;
 using SN.Application.Services;
@@ -15,7 +13,6 @@ public static class ServiceCollectionExtensions
 {
     private const string GmailBaseUriKey = "Appsettings:GmailBaseUri";
     private const string SlackBaseUriKey = "Appsettings:SlackBaseUri";
-    private const string SlackCredentialsKey = "Appsettings:SlackCredentialsFilename";
 
     public static void AddHttpClients(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
