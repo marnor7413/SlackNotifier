@@ -2,19 +2,18 @@
 using Newtonsoft.Json.Linq;
 using SN.Application.Interfaces;
 using SN.Application.Options;
-using SN.Application.Services;
 using System.Text;
 
 namespace SN.Infrastructure.Services.Slack;
 
 public class SlackApiService : ISlackApiService
 {
-    private readonly SecretsOptions options;
+    private readonly SlackSecretsOptions options;
     private readonly IHttpClientFactory httpClientFactory;
 
-    public SlackApiService(IOptions<List<SecretsOptions>> options, IHttpClientFactory httpClientFactory)
+    public SlackApiService(IOptions<SlackSecretsOptions> options, IHttpClientFactory httpClientFactory)
     {
-        this.options = options.Value.Single(x => x.Subject == nameof(SlackService)); ;
+        this.options = options.Value;
         this.httpClientFactory = httpClientFactory;
     }
 

@@ -122,20 +122,16 @@ public class SlackServiceTests : BaseTests
         return emailInfosRequest;
     }
 
-    private IOptions<List<SecretsOptions>> CreateOptions()
+    private IOptions<SlackSecretsOptions> CreateOptions()
     {
-        var options = Substitute.For<IOptions<List<SecretsOptions>>>();
-        var secrets = new List<SecretsOptions>
+        var secrets = new SlackSecretsOptions
         {
-            new SecretsOptions
-            {
-                Subject = "SlackService",
-                Token = Fixture.Create<string>(),
-                Destination = Fixture.Create<string>()
-            }
+            Subject = "SlackService",
+            Token = Fixture.Create<string>(),
+            Destination = Fixture.Create<string>()
         };
-        options.Value.Returns(secrets);
-        return options;
+
+        return Options.Create(secrets);
     }
 
     private static HttpResponseMessage CreateGetUploadUrlHttpResponse(HttpStatusCode code, 

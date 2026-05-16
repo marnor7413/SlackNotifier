@@ -1,6 +1,6 @@
 ﻿namespace SN.Application.Options;
 
-public class SecretsOptions
+public class SlackSecretsOptions
 {
     public string Subject { get; init; }
     public string Token { get; set; }
