@@ -3,12 +3,9 @@ Forward Gmail messages with attachments to a Slack channel without any payment p
 
 ## What is SlackNotifier?
 
-SlackNotifier is a .NET application that forwards incoming emails and attachments to a Slack channel. It was built to solve a real problem: my local housing association needed a way for external parties to reach all residents without going through a manual email chain via the board.
+SlackNotifier is a .NET application that forwards incoming emails and attachments to a Slack channel. It was built to solve a real problem: my local housing association needed a way for external parties to reach all residents without going through a manual email chain via the board. Instead of emailing the board who then forwards to everyone individually, anyone can send an email that automatically appears in the Slack workspace where all residents are members. Attachments such as meeting notices, annual reports and quotes are forwarded alongside the message, ensuring nothing gets lost. Before SlackNotifier, the board would send an email, then manually post a message in the Slack channel and either upload attachments separately or ask an admin to do it. SlackNotifier eliminates this by handling the entire flow automatically. One email is all it takes. In addition, the board can use the same email address to send out information directly to all residents, without any manual steps in Slack.
 
-Instead of emailing the board who then forwards to everyone individually, anyone can send an email that automatically appears in the Slack workspace where all residents are members.
-
-In addition, the board can ensure important information reaches all residents by sending it to the same email address, which is automatically forwarded to the Slack channel.
-
+While solutions like Zapier or Slack's built-in email integration can forward emails to Slack, they either come with recurring costs or lack reliable attachment support. SlackNotifier is self-hosted, free to run and handles attachments fully.
 The application started as a Windows-hosted service with a Jenkins pipeline for deployment. It is currently being rebuilt as a headless service for deployment in Kubernetes, using a local GitLab-to-Harbor-to-K3s pipeline.
 
 ## Architecture
