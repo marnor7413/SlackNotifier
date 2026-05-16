@@ -13,18 +13,27 @@ namespace SN.ConsoleApp;
 class Program
 {
     private static readonly string version = "1.2.1";
+    private const string DevelopEnvironment = "Development";
+    private const string ProductionEnvironment = "Production";
 
     static async Task Main(string[] args)
     {
         var environment = Environment
-            .GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
-            ? "Development"
-            : "Production";
+            .GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == DevelopEnvironment
+                ? DevelopEnvironment
+                : ProductionEnvironment;
 
-        var configuration = new ConfigurationBuilder()
+        var builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
+
+        if (environment == DevelopEnvironment)
+        {
+            builder.AddUserSecrets<Program>();
+        }
+
+        var configuration = builder
             .AddEnvironmentVariables()
             .AddCommandLine(args)
             .Build();
