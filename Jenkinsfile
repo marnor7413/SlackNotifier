@@ -59,7 +59,7 @@ pipeline {
         stage('Restore') {
             steps {
 				echo 'Restoring dependencies'
-                bat 'dotnet restore Slacknotifier.sln'
+                bat 'dotnet restore Slacknotifier.slnx'
             }
         }
         stage('Build') {
