@@ -12,7 +12,7 @@ namespace SN.ConsoleApp;
 
 class Program
 {
-    private static readonly string version = "1.3.1";
+    private static readonly string version = "1.3.2";
     private const string DevelopEnvironment = "Development";
     private const string ProductionEnvironment = "Production";
 
