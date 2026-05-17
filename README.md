@@ -52,7 +52,7 @@ Prerequisites: Slack account
 
 ### 4. Configure secrets
 
-Secrets are never stored in source control. Choose the method that matches your environment. SlackSecrets secret is only applicable if you go with strategy BrowserAuthentication.
+Secrets are never stored in source control. Choose the method that matches your environment. GmailImapSecrets secrets are only applicable if you go with strategy Headless. You must always set secrets for SlackSecrets.
 
 ---
 
