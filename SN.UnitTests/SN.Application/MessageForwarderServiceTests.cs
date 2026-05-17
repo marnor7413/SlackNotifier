@@ -77,6 +77,49 @@ public class MessageForwarderServiceTests : BaseTests
     }
 
     [Fact]
+    public async Task WhenEmailFetchedOnce_AndNextPollFetchNewEmail_ThenOldEmailIsNotIncludedInTheCurrentEmailForwardSession()
+    {
+        // Assign
+        var emailsFirstRound = Fixture.Build<EmailInfo>()
+                .CreateMany(1)
+                .ToList();
+        var emailsSecondRound = Fixture.Build<EmailInfo>()
+                .CreateMany(1)
+                .ToList();
+
+        var gmailApiService = Substitute.For<IGmailInboxService>();
+        gmailApiService
+            .strategy
+            .Returns(Fixture.Create<string>());
+        var gmalImapService = Substitute.For<IGmailInboxService>();
+        gmailApiService
+            .CheckForEmails()
+            .Returns(emailsFirstRound, emailsSecondRound);
+        gmailApiService
+            .strategy
+            .Returns("Headless");
+
+        var gmailServices = new List<IGmailInboxService>
+        {
+            gmailApiService,
+            gmalImapService
+        };
+        var slackService = Fixture.Freeze<ISlackService>();
+        var logger = Substitute.For<ILogger<MessageForwarderService>>();
+        var configuration = Substitute.For<IConfiguration>();
+        configuration["GmailStrategy"].Returns("Headless");
+        var SUT = new MessageForwarderService(configuration, gmailServices, slackService, logger);
+
+        // Act
+        await SUT.Run();
+        await SUT.Run();
+
+        // Assert
+        AssertLogReceived(2, LogLevel.Information, logger, $"---> 1 email(s) forwarded to Slack.");
+        await slackService.Received(2).SendMessage(Arg.Any<List<EmailInfo>>());
+    }
+
+    [Fact]
     public async Task WhenEmailPlaintextBodyIsFiltered_AndItContainsAnyAvastAdText_ThenItIsRemoved()
     {
         // Assign
