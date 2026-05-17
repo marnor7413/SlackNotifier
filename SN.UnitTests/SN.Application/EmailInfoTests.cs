@@ -158,7 +158,7 @@ public class EmailInfoTests : BaseTests
         var result = SUT.ToSlackFormattedStringContent(channel);
 
         // Assert
-        var jsonText = await result.ReadAsStringAsync();
+        var jsonText = await result.ReadAsStringAsync(TestContext.Current.CancellationToken);
         jsonText.Should().Be(expected);
     }
 
@@ -176,7 +176,7 @@ public class EmailInfoTests : BaseTests
         var result = SUT.ToSlackFormattedStringContent(channel);
 
         // Assert
-        var jsonText = await result.ReadAsStringAsync();
+        var jsonText = await result.ReadAsStringAsync(TestContext.Current.CancellationToken);
         jsonText.Should().Be(expected);
     }
 

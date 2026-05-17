@@ -11,7 +11,6 @@ namespace SN.Application.Services;
 
 public class GmailImapService : IGmailImapService
 {
-    private readonly List<MimeMessage> emails = new();
     private readonly GmailImapSecretsOptions options;
     private readonly IImapConnectionClient imapConnectionClient;
 
@@ -32,6 +31,7 @@ public class GmailImapService : IGmailImapService
         };
         using IImapClient client = await imapConnectionClient.ConnectAsync(secrets);
 
+        List<MimeMessage> emails = new();
         var uids = await client.Inbox.SearchAsync(SearchQuery.NotSeen);
         foreach (var uid in uids)
         {

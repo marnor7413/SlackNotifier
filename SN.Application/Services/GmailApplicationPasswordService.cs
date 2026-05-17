@@ -9,10 +9,8 @@ namespace SN.Application.Services;
 public class GmailApplicationPasswordService : IGmailInboxService
 {
     public string strategy => "Headless";
-
     private readonly IGmailImapService gmailImapService;
     private readonly ILogger<GmailApplicationPasswordService> logger;
-    private readonly List<EmailInfo> emailInfos = new List<EmailInfo>();
 
     public GmailApplicationPasswordService(IGmailImapService gmailImapService, ILogger<GmailApplicationPasswordService> logger)
     {
@@ -22,6 +20,7 @@ public class GmailApplicationPasswordService : IGmailInboxService
 
     public async Task<List<EmailInfo>> CheckForEmails()
     {
+        var emailInfos = new List<EmailInfo>();
         var messages = await gmailImapService.DownloadEmails();
 
         foreach (var email in messages)

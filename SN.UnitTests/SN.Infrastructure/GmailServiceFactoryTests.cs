@@ -22,7 +22,7 @@ public class GmailServiceFactoryTests : BaseTests
         var authService = Fixture.Freeze<IGoogleAuthService>();
         authService
             .AuthorizeAsync(Arg.Any<GoogleClientSecrets>(), Arg.Any<string>())
-            .Returns(Task.FromResult(new FakeUserCredential("fakeuserid")).Result);
+            .Returns(new FakeUserCredential("fakeuserid"));
 
         var IOService = Fixture.Freeze<IIOService>();
         IOService

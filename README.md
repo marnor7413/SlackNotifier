@@ -52,7 +52,7 @@ Prerequisites: Slack account
 
 ### 4. Configure secrets
 
-Secrets are never stored in source control. Choose the method that matches your environment.
+Secrets are never stored in source control. Choose the method that matches your environment. SlackSecrets secret is only applicable if you go with strategy BrowserAuthentication.
 
 ---
 
