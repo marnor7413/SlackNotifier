@@ -58,14 +58,15 @@ deploy:
   before_script:
     - apk add --no-cache git
   script:
-    - git clone https://oauth2:$GITLAB_TOKEN@gitlab.com/homelab3373419/k8s-gitops.git
-    - cd k8s-gitops
-    - git config user.email "ci@gitlab.com"
-    - git config user.name "GitLab CI"
-    - sed -i "s|image:.*slacknotifier.*|image: 192.168.50.6/homelab/slacknotifier:$CI_COMMIT_SHORT_SHA|" slacknotifier/deployment.yaml
-    - git add slacknotifier/deployment.yaml
-    - git commit -m "ci: update image tag to $CI_COMMIT_SHORT_SHA"
-    - git push
+    - |
+      git clone https://oauth2:$GITLAB_TOKEN@gitlab.com/homelab3373419/k8s-gitops.git
+      cd k8s-gitops
+      git config user.email "ci@gitlab.com"
+      git config user.name "GitLab CI"
+      sed -i "s|image:.*slacknotifier.*|image: 192.168.50.6/homelab/slacknotifier:$CI_COMMIT_SHORT_SHA|" slacknotifier/deployment.yaml
+      git add slacknotifier/deployment.yaml
+      git commit -m "ci: update image tag to $CI_COMMIT_SHORT_SHA"
+      git push
   dependencies: []
   rules:
     - if: '$CI_COMMIT_MESSAGE =~ /^ci: update image tag/'
