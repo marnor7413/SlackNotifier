@@ -76,29 +76,57 @@ Make sure `ASPNETCORE_ENVIRONMENT` is set to `Development` in your launch profil
 
 #### Running in Kubernetes (Production)
 
-Secrets are injected as environment variables via a Kubernetes Secret. Create a file `k8s/secret.yaml` with the following content. **Do not check this file into source control.**
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: slacknotifier-secrets
-type: Opaque
-stringData:
-  GmailImapSecrets__Email: "your-email@gmail.com"
-  GmailImapSecrets__Password: "your-app-password"
-  SlackSecrets__Subject: "SlackService"
-  SlackSecrets__Token: "your-slack-oauth-token"
-  SlackSecrets__Destination: "your-channel-id"
+Create namespace for the app
+```bash
+kubectl get secrets --namespace slacknotifier
 ```
 
-Apply it to your cluster:
-
+Add secrets. Secrets are injected as environment variables via a Kubernetes Secret.
 ```bash
-kubectl apply -f k8s/secret.yaml
+kubectl create secret generic slacknotifier-secrets \
+  --namespace slacknotifier \
+  --from-literal=GmailImapSecrets__Email="your-email@gmail.com" \
+  --from-literal=GmailImapSecrets__Password="your-app-password" \
+  --from-literal=SlackSecrets__Subject="SlackService" \
+  --from-literal=SlackSecrets__Token="your-slack-token" \
+  --from-literal=SlackSecrets__Destination="your-slack-channel-id"
+```
+
+Verify, non-empty string values means everything is ok!
+```bash
+kubectl get secret slacknotifier-secrets \
+  --namespace slacknotifier \
+  -o jsonpath='{.data}'
 ```
 
 The secret is referenced in the Deployment via `envFrom`. .NET automatically translates the `__` separator in environment variable names to `:`, matching the configuration keys the application expects.
+
+Below is a deployment example-manifest I use in my context (Gitlab/Harbor/ArgoCd). The gitlab pipeline will call on this manifest during the deploy step.
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slacknotifier
+  namespace: slacknotifier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slacknotifier
+  template:
+    metadata:
+      labels:
+        app: slacknotifier
+    spec:
+      containers:
+        - name: slacknotifier
+          image: 192.168.50.6/homelab/slacknotifier:PLACEHOLDER
+          envFrom:
+            - secretRef:
+                name: slacknotifier-secrets
+      imagePullSecrets:
+        - name: harbor-pull-secret
+```
 
 ---
 
