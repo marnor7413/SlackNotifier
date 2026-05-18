@@ -63,11 +63,8 @@ class Program
         var logger = host.Services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("---> Environment set to {Environment}", environment);
         logger.LogInformation("---> Starting version {Version} of application.", version);
-        logger.LogInformation("---> Console application started. Press Enter to stop.");
+        logger.LogInformation("---> Application started. Waiting for shutdown signal (SIGTERM/CTRL+C).");
 
-        var runTask = host.RunAsync();
-        await Task.Run(() => Console.ReadLine());
-        await host.StopAsync();
-        await runTask;
+        await host.RunAsync();
     }
 }
