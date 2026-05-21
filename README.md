@@ -78,7 +78,7 @@ Make sure `ASPNETCORE_ENVIRONMENT` is set to `Development` in your launch profil
 
 Create namespace for the app
 ```bash
-kubectl get secrets --namespace slacknotifier
+kubectl create namespace slacknotifier
 ```
 
 Add secrets. Secrets are injected as environment variables via a Kubernetes Secret.
