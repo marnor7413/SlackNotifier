@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SN.Application.Interfaces;
 using SN.Application.Options;
 using SN.Application.Services;
+using SN.ConsoleApp.Constants;
 using SN.Infrastructure.Services.Gmail;
 using SN.Infrastructure.Services.Slack;
 
@@ -11,22 +12,22 @@ namespace SN.ConsoleApp.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    private const string GmailBaseUriKey = "Appsettings:GmailBaseUri";
-    private const string SlackBaseUriKey = "Appsettings:SlackBaseUri";
+    private const string GmailApiBaseUrlKey = ApplicationConstants.Appsettings.GmailApiBaseUrlKey;
+    private const string SlackApiBaseUrlKey = ApplicationConstants.Appsettings.SlackApiBaseUrlKey;
 
     public static void AddHttpClients(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
         serviceCollection.AddTransient<GmailApiService>();
         serviceCollection.AddHttpClient<GmailApiService>((httpClient) =>
         {
-            var baseUri = configuration.GetSection(GmailBaseUriKey).Value;
+            var baseUri = configuration.GetSection(GmailApiBaseUrlKey).Value;
             httpClient.BaseAddress = new Uri(baseUri);
         });
 
         serviceCollection.AddTransient<SlackApiService>();
         serviceCollection.AddHttpClient<SlackApiService>((httpClient) =>
         {
-            var baseUri = configuration.GetSection(SlackBaseUriKey).Value;
+            var baseUri = configuration.GetSection(SlackApiBaseUrlKey).Value;
             httpClient.Timeout = TimeSpan.FromSeconds(30);
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             httpClient.BaseAddress = new Uri(baseUri);
