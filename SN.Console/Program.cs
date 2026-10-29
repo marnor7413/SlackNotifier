@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SN.Application.Builders;
 using SN.Application.Interfaces;
 using SN.Application.Services;
+using SN.ConsoleApp.Constants;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
 
@@ -12,23 +13,19 @@ namespace SN.ConsoleApp;
 
 class Program
 {
-    private static readonly string version = "1.3.3";
-    private const string DevelopEnvironment = "Development";
-    private const string ProductionEnvironment = "Production";
-
     static async Task Main(string[] args)
     {
         var environment = Environment
-            .GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == DevelopEnvironment
-                ? DevelopEnvironment
-                : ProductionEnvironment;
+            .GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == ApplicationConstants.Environments.Development
+                ? ApplicationConstants.Environments.Development
+                : ApplicationConstants.Environments.Production;
 
         var builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
 
-        if (environment == DevelopEnvironment)
+        if (environment == ApplicationConstants.Environments.Development)
         {
             builder.AddUserSecrets<Program>();
         }
@@ -62,7 +59,7 @@ class Program
 
         var logger = host.Services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("---> Environment set to {Environment}", environment);
-        logger.LogInformation("---> Starting version {Version} of application.", version);
+        logger.LogInformation("---> Starting version {Version} of application.", ApplicationConstants.Version);
         logger.LogInformation("---> Application started. Waiting for shutdown signal (SIGTERM/CTRL+C).");
 
         await host.RunAsync();
