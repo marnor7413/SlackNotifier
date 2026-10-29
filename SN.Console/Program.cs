@@ -9,17 +9,18 @@ using SN.ConsoleApp.Constants;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
 
-var environment = Environment
-    .GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == ApplicationConstants.Environments.Development
-        ? ApplicationConstants.Environments.Development
-        : ApplicationConstants.Environments.Production;
+var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+    == ApplicationConstants.Environments.Development;
+var environment = isDevelopment
+    ? ApplicationConstants.Environments.Development
+    : ApplicationConstants.Environments.Production;
 
 Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
 var builder = Host.CreateApplicationBuilder(args);
 
-if (environment == ApplicationConstants.Environments.Development)
+if (isDevelopment)
 {
-    builder.Configuration.AddUserSecrets<MessageForwarderHostedService>();
+    builder.Configuration.AddUserSecrets<App>();
 }
 
 builder.Logging.ClearProviders();
@@ -36,9 +37,8 @@ builder.Services.AddScoped<ISlackBlockBuilder, SlackBlockBuilder>();
 builder.Services.AddTransient<IImapConnectionClient, ImapConnectionClient>();
 builder.Services.AddHostedService<MessageForwarderHostedService>();
 
-var host = builder.Build();
-
-var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Program");
+using var host = builder.Build();
+var logger = host.Services.GetRequiredService<ILogger<App>>();
 logger.LogInformation("---> Environment set to {Environment}", environment);
 logger.LogInformation("---> Starting version {Version} of application.", ApplicationConstants.Version);
 logger.LogInformation("---> Application started. Waiting for shutdown signal (SIGTERM/CTRL+C).");
