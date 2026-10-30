@@ -9,18 +9,13 @@ using SN.ConsoleApp.Constants;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
 
-var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
-    == ApplicationConstants.Environments.Development;
-var environment = isDevelopment
-    ? ApplicationConstants.Environments.Development
-    : ApplicationConstants.Environments.Production;
-
+var environment = ApplicationConfigurationExtensions.GetApplicationEnvironment();
 Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
-var builder = Host.CreateApplicationBuilder(args);
 
-if (isDevelopment)
+var builder = Host.CreateApplicationBuilder(args);
+if (builder.Environment.IsDevelopment())
 {
-    builder.Configuration.AddUserSecrets<App>();
+    builder.Configuration.AddUserSecrets<Program>();
 }
 
 builder.Logging.ClearProviders();
@@ -38,7 +33,7 @@ builder.Services.AddTransient<IImapConnectionClient, ImapConnectionClient>();
 builder.Services.AddHostedService<MessageForwarderHostedService>();
 
 using var host = builder.Build();
-var logger = host.Services.GetRequiredService<ILogger<App>>();
+var logger = host.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("---> Environment set to {Environment}", environment);
 logger.LogInformation("---> Starting version {Version} of application.", ApplicationConstants.Version);
 logger.LogInformation("---> Application started. Waiting for shutdown signal (SIGTERM/CTRL+C).");
