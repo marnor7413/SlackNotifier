@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.74.0.4134" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.8" />
+    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.77.0.4295" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.14" />
   </ItemGroup>
 
   <ItemGroup>

@@ -37,10 +37,10 @@ public class GmailImapServiceTests : BaseTests
         var uids = new List<UniqueId> { Fixture.Create<UniqueId>() }.As<IList<UniqueId>>();
         var emailResult = MockEmail();
         client.Inbox
-            .SearchAsync(Arg.Any<SearchQuery>())
+            .SearchAsync(Arg.Any<SearchQuery>(), TestContext.Current.CancellationToken)
             .Returns(uids);
         client.Inbox
-            .GetMessageAsync(Arg.Any<UniqueId>())
+            .GetMessageAsync(Arg.Any<UniqueId>(), TestContext.Current.CancellationToken)
             .Returns(emailResult);
 
         var SUT = new GmailImapService(connectionClient, options);
