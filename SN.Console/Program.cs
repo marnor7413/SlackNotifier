@@ -8,8 +8,9 @@ using SN.Application.Services;
 using SN.ConsoleApp.Constants;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
+using SN.ConsoleApp.Infrastructure;
 
-var environment = ApplicationConfigurationExtensions.GetApplicationEnvironment();
+var environment = ApplicationConfiguration.GetApplicationEnvironment();
 Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
 
 var builder = Host.CreateApplicationBuilder(args);

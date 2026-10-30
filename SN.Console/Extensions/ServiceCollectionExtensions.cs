@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SN.Application.Interfaces;
-using SN.Application.Options;
 using SN.Application.Services;
 using SN.ConsoleApp.Constants;
 using SN.Infrastructure.Services.Gmail;
@@ -33,18 +32,6 @@ public static class ServiceCollectionExtensions
             httpClient.BaseAddress = new Uri(baseUri);
         });
     }
-
-    public static void ConfigureOptionsFromAppsettings(
-      this IServiceCollection serviceCollection,
-      IConfiguration configuration)
-    {
-        serviceCollection
-            .Configure<GmailImapSecretsOptions>(configuration.GetSection("GmailImapSecrets"));
-
-        serviceCollection
-            .Configure<SlackSecretsOptions>(configuration.GetSection("SlackSecrets"));
-    }
-
 
     public static void AddServices(this  IServiceCollection serviceCollection)
     {
