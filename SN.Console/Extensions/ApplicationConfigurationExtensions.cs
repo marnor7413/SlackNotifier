@@ -4,13 +4,14 @@ namespace SN.ConsoleApp.Extensions;
 
 public static class ApplicationConfigurationExtensions
 {
-    /// <summary> Environment value is only set in launchsettings.json for local debug</summary>
-    public static string GetApplicationEnvironment()
+    public static void ConfigureOpenTelemetry(this IServiceCollection services)
     {
-        var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == ApplicationConstants.Environments.Development;
-        
-        return isDevelopment
-            ? ApplicationConstants.Environments.Development
-            : ApplicationConstants.Environments.Production;
+        services.AddOpenTelemetry()
+            .ConfigureResource(resource 
+                => resource.AddAttributes([ new KeyValuePair<string, object>("service.version", ApplicationConstants.Version) ]))
+            .WithMetrics(metrics => metrics
+                .AddMeter("System.Runtime")
+                .AddMeter("System.Net.Http"))
+            .UseOtlpExporter();
     }
 }

@@ -25,6 +25,8 @@ builder.Logging.AddSimpleConsole(opt =>
     opt.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
 });
 
+builder.Services.ConfigureOpenTelemetry();
+
 builder.Services.AddHttpClients(builder.Configuration);
 builder.Services.ConfigureOptionsFromAppsettings(builder.Configuration);
 builder.Services.AddServices();
