@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SN.Application.Interfaces;
 
@@ -6,13 +7,15 @@ namespace SN.ConsoleApp.Services;
 
 public class MessageForwarderHostedService : BackgroundService
 {
-    private readonly IMessageForwarderService messageForwarder;
+    private readonly IServiceScopeFactory scopeFactory;
     private readonly ILogger<MessageForwarderHostedService> logger;
     private readonly TimeSpan interval = TimeSpan.FromMinutes(30);
 
-    public MessageForwarderHostedService(IMessageForwarderService messageForwarder, ILogger<MessageForwarderHostedService> logger)
+    public MessageForwarderHostedService(
+        IServiceScopeFactory scopeFactory,
+        ILogger<MessageForwarderHostedService> logger)
     {
-        this.messageForwarder = messageForwarder;
+        this.scopeFactory = scopeFactory;
         this.logger = logger;
     }
 
@@ -26,6 +29,8 @@ public class MessageForwarderHostedService : BackgroundService
             {
                 try
                 {
+                    await using var scope = scopeFactory.CreateAsyncScope();
+                    var messageForwarder = scope.ServiceProvider.GetRequiredService<IMessageForwarderService>();
                     await messageForwarder.Run();
                 }
                 catch (Exception ex)
