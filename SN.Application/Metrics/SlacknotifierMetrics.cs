@@ -158,11 +158,9 @@ public sealed class SlackNotifierMetrics
     /// <c>AddMeter</c>. A mismatch causes no error, only missing metrics.
     /// </summary>
     public const string MeterName = "SlackNotifier";
-
     private const string TargetImap = "imap";
     private const string TargetSlack = "slack";
     private const string UnknownSlackError = "unknown";
-
     private readonly Counter<long> imapEmailsFetched;
     private readonly Histogram<double> imapFetchDuration;
     private readonly Counter<long> slackEmailsPosted;
