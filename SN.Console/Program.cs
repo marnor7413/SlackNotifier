@@ -33,7 +33,6 @@ builder.Services.AddHostedService<MessageForwarderHostedService>();
 
 using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("---> Host environment is {HostEnvironment}", host.Services.GetRequiredService<IHostEnvironment>().EnvironmentName);
 logger.LogInformation("---> Environment set to {Environment}", builder.Environment.EnvironmentName);
 logger.LogInformation("---> Starting version {Version} of application.", ApplicationConstants.Version);
 logger.LogInformation("---> Application started. Waiting for shutdown signal (SIGTERM/CTRL+C).");
