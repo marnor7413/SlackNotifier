@@ -8,10 +8,6 @@ using SN.Application.Services;
 using SN.ConsoleApp.Constants;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
-using SN.ConsoleApp.Infrastructure;
-
-var environment = ApplicationConfiguration.GetApplicationEnvironment();
-Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
 
 var builder = Host.CreateApplicationBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -37,7 +33,8 @@ builder.Services.AddHostedService<MessageForwarderHostedService>();
 
 using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("---> Environment set to {Environment}", environment);
+logger.LogInformation("---> Host environment is {HostEnvironment}", host.Services.GetRequiredService<IHostEnvironment>().EnvironmentName);
+logger.LogInformation("---> Environment set to {Environment}", builder.Environment.EnvironmentName);
 logger.LogInformation("---> Starting version {Version} of application.", ApplicationConstants.Version);
 logger.LogInformation("---> Application started. Waiting for shutdown signal (SIGTERM/CTRL+C).");
 
