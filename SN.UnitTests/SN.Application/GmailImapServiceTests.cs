@@ -70,18 +70,18 @@ public class GmailImapServiceTests : BaseTests
 
         using var meterFactory = new TestMeterFactory();
         var SUT = new GmailImapService(connectionClient, options, new SlackNotifierMetrics(meterFactory));
-        using var fetched = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.imap.emails.fetched");
-        using var lastSuccess = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.imap.last_success_timestamp");
-        using var errors = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.errors");
+        using var emailsFetchedListener = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.imap.emails.fetched");
+        using var lastSuccessListener = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.imap.last_success_timestamp");
+        using var errorsListener = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.errors");
 
         // Act
         await SUT.DownloadEmails();
-        lastSuccess.RecordObservableInstruments();
+        lastSuccessListener.RecordObservableInstruments();
 
         // Assert
-        fetched.GetMeasurementSnapshot().Should().ContainSingle().Which.Value.Should().Be(1);
-        lastSuccess.GetMeasurementSnapshot().Should().ContainSingle().Which.Value.Should().BePositive();
-        errors.GetMeasurementSnapshot().Should().BeEmpty();
+        emailsFetchedListener.GetMeasurementSnapshot().Should().ContainSingle().Which.Value.Should().Be(1);
+        lastSuccessListener.GetMeasurementSnapshot().Should().ContainSingle().Which.Value.Should().BePositive();
+        errorsListener.GetMeasurementSnapshot().Should().BeEmpty();
     }
 
     [Fact]
@@ -95,19 +95,19 @@ public class GmailImapServiceTests : BaseTests
 
         using var meterFactory = new TestMeterFactory();
         var SUT = new GmailImapService(connectionClient, options, new SlackNotifierMetrics(meterFactory));
-        using var lastSuccess = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.imap.last_success_timestamp");
-        using var errors = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.errors");
+        using var lastSuccessListener = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.imap.last_success_timestamp");
+        using var errorsListener = new MetricCollector<long>(meterFactory, SlackNotifierMetrics.MeterName, "slacknotifier.errors");
 
         // Act
         var act = () => SUT.DownloadEmails();
 
         // Assert
         await act.Should().ThrowAsync<MailKit.Security.AuthenticationException>();
-        var error = errors.GetMeasurementSnapshot().Should().ContainSingle().Subject;
+        var error = errorsListener.GetMeasurementSnapshot().Should().ContainSingle().Subject;
         error.Tags["target"].Should().Be("imap");
         error.Tags["error.type"].Should().Be("MailKit.Security.AuthenticationException");
-        lastSuccess.RecordObservableInstruments();
-        lastSuccess.GetMeasurementSnapshot().Should().BeEmpty();
+        lastSuccessListener.RecordObservableInstruments();
+        lastSuccessListener.GetMeasurementSnapshot().Should().BeEmpty();
     }
 
     private (IImapConnectionClient, IImapClient, IOptions<GmailImapSecretsOptions>) MockInterfaces()
