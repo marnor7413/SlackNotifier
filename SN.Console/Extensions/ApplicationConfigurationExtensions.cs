@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
+using SN.Application.Metrics;
 using SN.Application.Options;
 using SN.ConsoleApp.Constants;
 
@@ -16,7 +17,8 @@ public static class ApplicationConfigurationExtensions
                 => resource.AddAttributes([ new KeyValuePair<string, object>("service.version", ApplicationConstants.Version) ]))
             .WithMetrics(metrics => metrics
                 .AddMeter("System.Runtime")
-                .AddMeter("System.Net.Http"))
+                .AddMeter("System.Net.Http")
+                .AddMeter(SlackNotifierMetrics.MeterName))
             .UseOtlpExporter();
     }
 

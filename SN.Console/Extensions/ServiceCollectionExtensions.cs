@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SN.Application.Interfaces;
+using SN.Application.Metrics;
 using SN.Application.Services;
 using SN.ConsoleApp.Constants;
 using SN.Infrastructure.Services.Gmail;
@@ -44,8 +45,11 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IIOService, IOService>();
         serviceCollection.AddScoped<IGmailServiceFactory, GmailServiceFactory>();
         serviceCollection.AddScoped<IMessageTypeService, MessageTypeService>();
+
         serviceCollection.AddTransient<ISlackService, SlackService>();
         serviceCollection.AddTransient<ISlackApiService, SlackApiService>();
         serviceCollection.AddTransient<IGmailImapService, GmailImapService>();
+
+        serviceCollection.AddSingleton<SlackNotifierMetrics>();
     }
 }
