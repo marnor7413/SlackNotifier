@@ -112,9 +112,7 @@ public sealed class SlackNotifierMetrics
     /// <c>AddMeter</c>. A mismatch causes no error, only missing metrics.
     /// </summary>
     public const string MeterName = "SlackNotifier";
-
     private const string TargetImap = "imap";
-
     private readonly Counter<long> imapEmailsFetched;
     private readonly Histogram<double> imapFetchDuration;
     private readonly Counter<long> errors;
@@ -178,9 +176,7 @@ public sealed class SlackNotifierMetrics
     public void ImapFetchFailed(Exception exception) =>
         RecordError(TargetImap, exception.GetType().FullName ?? exception.GetType().Name);
 
-    /// <summary>
-    /// Records the duration of an IMAP fetch, successful or not.
-    /// </summary>
+    /// <summary> Records the duration of an IMAP fetch, successful or not.</summary>
     /// <param name="duration">Elapsed time for the complete fetch.</param>
     public void RecordImapFetchDuration(TimeSpan duration) =>
         imapFetchDuration.Record(duration.TotalSeconds);
