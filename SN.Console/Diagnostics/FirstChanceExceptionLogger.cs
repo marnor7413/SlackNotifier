@@ -16,6 +16,11 @@ namespace SN.ConsoleApp.Diagnostics;
 /// logger answers where by writing the stack at the moment of the throw.
 /// </para>
 /// <para>
+/// Configuration (section "Diagnostics:FirstChanceExceptions"):
+/// Enabled turns the logging on. ExceptionTypes lists full type names to log,
+/// matched exactly. "*" logs every type. An empty list logs nothing.
+/// </para>
+/// <para>
 /// Why Console.Error and not ILogger: ILogger output is exported over OTLP/HTTP.
 /// If that export throws, this handler would run again and could loop.
 /// </para>
@@ -32,6 +37,7 @@ internal static class FirstChanceExceptionLogger
     private static bool isHandling;
 
     private static HashSet<string> exceptionTypes = [];
+    private static bool logAllTypes;
 
     public static void EnableIfConfigured(IConfiguration configuration)
     {
@@ -44,9 +50,19 @@ internal static class FirstChanceExceptionLogger
         }
 
         exceptionTypes = new HashSet<string>(options.ExceptionTypes, StringComparer.Ordinal);
+
+        if (exceptionTypes.Count == 0)
+        {
+            Console.Error.WriteLine(
+                "---> First chance exception logging is enabled but no exception types are configured. " +
+                "Nothing will be logged. Use \"*\" to log all types.");
+            return;
+        }
+
+        logAllTypes = exceptionTypes.Contains("*");
         AppDomain.CurrentDomain.FirstChanceException += OnFirstChanceException;
 
-        var scope = exceptionTypes.Count == 0 ? "all exception types" : string.Join(", ", exceptionTypes);
+        var scope = logAllTypes ? "all exception types" : string.Join(", ", exceptionTypes);
         Console.Error.WriteLine($"---> First chance exception logging enabled for: {scope}");
     }
 
@@ -63,7 +79,7 @@ internal static class FirstChanceExceptionLogger
             var exception = e.Exception;
             var typeName = exception.GetType().FullName;
 
-            if (exceptionTypes.Count > 0 && !exceptionTypes.Contains(typeName))
+            if (!logAllTypes && !exceptionTypes.Contains(typeName))
             {
                 return;
             }
@@ -90,6 +106,7 @@ internal static class FirstChanceExceptionLogger
         }
         finally
         {
+            // Also runs after the early return above, so the guard is always reset.
             isHandling = false;
         }
     }
