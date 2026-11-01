@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SN.Application\SN.Application.csproj" />
+    <ProjectReference Include="..\SN.Console\SN.ConsoleApp.csproj" />
     <ProjectReference Include="..\SN.Core\SN.Core.csproj" />
     <ProjectReference Include="..\SN.Infrastructure\SN.Infrastructure.csproj" />
   </ItemGroup>

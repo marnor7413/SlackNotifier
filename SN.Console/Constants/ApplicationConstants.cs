@@ -2,11 +2,13 @@
 
 public static class ApplicationConstants
 {
-    public const string Version = "1.6.1";
+    public const string Version = "1.7.0";
 
     public static class Appsettings
     {
         public const string GmailApiBaseUrlKey = "Appsettings:GmailBaseUri";
         public const string SlackApiBaseUrlKey = "Appsettings:SlackBaseUri";
+        public const string GmailImapSecrets = "GmailImapSecrets";
+        public const string SlackSecrets = "SlackSecrets";
     }
 }

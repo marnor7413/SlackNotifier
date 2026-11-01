@@ -44,12 +44,22 @@ namespace SN.Application.Metrics;
 /// measurements.
 /// </para>
 /// <para>
+/// <b>Failed operations versus failed runs</b><br/>
+/// <c>slacknotifier.errors</c> counts single operations against IMAP or Slack that failed.
+/// <c>slacknotifier.runs.failed</c> counts forwarding runs that were aborted before they
+/// finished. They answer different questions and are shown in different panels. An IMAP
+/// error that aborts a run is therefore recorded once in each counter, which is
+/// intentional. A Slack error does not abort the run, since SlackService handles it, and
+/// is only recorded in <c>slacknotifier.errors</c>.
+/// </para>
+/// <para>
 /// <b>Counters start at zero</b><br/>
 /// All counters without attributes are recorded with the value 0 when this class is
 /// created. Prometheus recommends exporting a default value for time series known to
 /// exist, because a series that only appears when something happens is hard to query.
-/// <c>slacknotifier.errors</c> is not initialized, since its <c>error.type</c> values are
-/// not known in advance; the first error of a new type appears as a new series.
+/// <c>slacknotifier.errors</c> and <c>slacknotifier.runs.failed</c> are not initialized,
+/// since their <c>error.type</c> values are not known in advance; the first error of a
+/// new type appears as a new series.
 /// </para>
 /// <para>
 /// <b>Instruments</b><br/>
@@ -133,6 +143,16 @@ namespace SN.Application.Metrics;
 ///     <c>target</c> and <c>error_type</c>.
 ///     </description>
 ///   </item>
+///   <item>
+///     <term><c>slacknotifier.runs.failed</c> (counter, {run})</term>
+///     <description>
+///     Number of forwarding runs that were aborted. Attribute <c>error.type</c>: the full
+///     type name of the exception that reached the hosted service, or
+///     <c>strategy_not_found</c> when the configured <c>GmailStrategy</c> has no matching
+///     inbox service. Prometheus: <c>slacknotifier_runs_failed_total</c> with label
+///     <c>error_type</c>.
+///     </description>
+///   </item>
 /// </list>
 /// </para>
 /// <para>
@@ -161,12 +181,14 @@ public sealed class SlackNotifierMetrics
     private const string TargetImap = "imap";
     private const string TargetSlack = "slack";
     private const string UnknownSlackError = "unknown";
+    private const string StrategyNotFoundErrorType = "strategy_not_found";
     private readonly Counter<long> imapEmailsFetched;
     private readonly Histogram<double> imapFetchDuration;
     private readonly Counter<long> slackEmailsPosted;
     private readonly Counter<long> slackAttachmentsUploaded;
     private readonly Counter<long> slackAttachmentsSize;
     private readonly Counter<long> errors;
+    private readonly Counter<long> runsFailed;
     private long imapLastSuccessUnixSeconds;
     private long slackLastSuccessUnixSeconds;
 
@@ -224,6 +246,11 @@ public sealed class SlackNotifierMetrics
             name: "slacknotifier.errors",
             unit: "{error}",
             description: "Number of failed operations, by target and error type.");
+
+        runsFailed = meter.CreateCounter<long>(
+            name: "slacknotifier.runs.failed",
+            unit: "{run}",
+            description: "Number of forwarding runs that were aborted, by error type.");
 
         imapEmailsFetched.Add(0);
         slackEmailsPosted.Add(0);
@@ -304,10 +331,30 @@ public sealed class SlackNotifierMetrics
     public void SlackRequestThrew(Exception exception) =>
         RecordError(TargetSlack, TypeName(exception));
 
+    /// <summary>
+    /// Records a forwarding run that was aborted by an exception, with the exception's
+    /// full type name as <c>error.type</c>. Called by the hosted service for every
+    /// exception that reaches it.
+    /// </summary>
+    /// <param name="exception">The exception that aborted the run. Only its type is used.</param>
+    public void RunFailed(Exception exception) =>
+        RecordRunFailure(TypeName(exception));
+
+    /// <summary>
+    /// Records a forwarding run that did nothing because the configured
+    /// <c>GmailStrategy</c> has no matching inbox service, with
+    /// <c>error.type=strategy_not_found</c>.
+    /// </summary>
+    public void RunFailedStrategyNotFound() =>
+        RecordRunFailure(StrategyNotFoundErrorType);
+
     private void RecordError(string target, string errorType) =>
         errors.Add(1,
             new KeyValuePair<string, object>("target", target),
             new KeyValuePair<string, object>("error.type", errorType));
+
+    private void RecordRunFailure(string errorType) =>
+        runsFailed.Add(1, new KeyValuePair<string, object>("error.type", errorType));
 
     private static string TypeName(Exception exception) =>
         exception.GetType().FullName ?? exception.GetType().Name;
