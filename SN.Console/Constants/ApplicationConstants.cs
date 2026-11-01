@@ -2,7 +2,7 @@
 
 public static class ApplicationConstants
 {
-    public const string Version = "1.6.0";
+    public const string Version = "1.6.1";
 
     public static class Appsettings
     {

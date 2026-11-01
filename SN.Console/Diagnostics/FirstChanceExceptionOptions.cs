@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SN.ConsoleApp.Diagnostics;
+﻿namespace SN.ConsoleApp.Diagnostics;
 
 /// <summary>
 /// Settings for <see cref="FirstChanceExceptionLogger"/>, bound from the
@@ -18,7 +14,7 @@ internal sealed class FirstChanceExceptionOptions
 
     /// <summary>
     /// Full type names to log, matched exactly (subclasses do not match).
-    /// An empty list logs every exception type.
+    /// Use "*" to log every exception type. An empty list logs nothing.
     /// </summary>
     public string[] ExceptionTypes { get; set; } = [];
 }
