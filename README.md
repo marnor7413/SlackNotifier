@@ -7,25 +7,35 @@ SlackNotifier is a .NET application that forwards incoming emails and attachment
 
 While solutions like Zapier or Slack's built-in email integration can forward emails to Slack, they either come with recurring costs or lack reliable attachment support. SlackNotifier is self-hosted, free to run and handles attachments fully.
 
-The application started as a Windows-hosted service with a Jenkins pipeline for deployment. It is currently being rebuilt as a headless service for deployment in Kubernetes, using a local GitLab-to-Harbor-to-K3s pipeline.
+The application started as a Windows-hosted service with a Jenkins pipeline for deployment. It now runs as a headless service in Kubernetes, deployed through a local GitLab-to-Harbor-to-K3s pipeline with ArgoCD.
 
 ## Architecture
 
 The solution follows Clean Architecture with the following layers:
 
-- **SN.Core** — domain models and interfaces
-- **SN.Application** — application logic and services
-- **SN.Infrastructure** — Gmail and Slack integrations
-- **SN.Console** — entry point, hosting and configuration
-- **SN.UnitTests** — unit tests
+- **SN.Core**: domain models and interfaces
+- **SN.Application**: application logic, services and application metrics
+- **SN.Infrastructure**: Gmail and Slack integrations
+- **SN.Console**: entry point, hosting, configuration and OpenTelemetry setup
+- **SN.UnitTests**: unit tests
 
 The application runs as a .NET BackgroundService. It connects to Gmail via IMAP using MailKit with App Password authentication, avoiding the need for browser-based OAuth2 in a headless environment. Secrets are managed outside source control, via .NET user-secrets locally and Kubernetes Secrets in the target deployment.
+
+## Observability
+
+SlackNotifier exports metrics with OpenTelemetry over OTLP/HTTP to an OpenTelemetry Collector, which forwards them to Prometheus. A Grafana dashboard shows whether the application actually works: time since the last successful IMAP fetch and Slack post, fetched and posted emails, errors per operation and aborted runs.
+
+The application's own metrics are defined in `SlackNotifierMetrics` and only depend on `System.Diagnostics.Metrics`. OpenTelemetry is configured in `SN.Console`.
+
+Exporting is optional. Without a reachable Collector the application works as usual; only the metrics are missing.
+
+See [docs/observability-opentelemetry.md](docs/observability-opentelemetry.md) for the full setup, the list of metrics, the dashboard and lessons learned.
 
 ---
 
 ## Installation
 
-### 1. Setup Gmail — Application Password (preferred method)
+### 1. Setup Gmail: Application Password (preferred method)
 
 This is the recommended method for running the application headless, including in Kubernetes.
 
@@ -70,7 +80,7 @@ dotnet user-secrets set "SlackSecrets:Token" "your-slack-oauth-token"
 dotnet user-secrets set "SlackSecrets:Destination" "your-channel-id"
 ```
 
-Make sure `ASPNETCORE_ENVIRONMENT` is set to `Development` in your launch profile (`launchSettings.json`).
+Make sure `DOTNET_ENVIRONMENT` is set to `Development` in your launch profile (`launchSettings.json`). The application uses the generic host, which reads `DOTNET_ENVIRONMENT` and ignores `ASPNETCORE_ENVIRONMENT`.
 
 ---
 
@@ -101,7 +111,7 @@ kubectl get secret slacknotifier-secrets \
 
 The secret is referenced in the Deployment via `envFrom`. .NET automatically translates the `__` separator in environment variable names to `:`, matching the configuration keys the application expects.
 
-Below is a deployment example-manifest I use in my context (Gitlab/Harbor/ArgoCd). The gitlab pipeline will call on this manifest during the deploy step.
+Below is a deployment example-manifest I use in my context (Gitlab/Harbor/ArgoCd). The gitlab pipeline will call on this manifest during the deploy step. The `env` block configures the OpenTelemetry export and can be left out if no Collector is available.
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -121,6 +131,19 @@ spec:
       containers:
         - name: slacknotifier
           image: 192.168.50.6/homelab/slacknotifier:PLACEHOLDER
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OTEL_SERVICE_NAME
+              value: slacknotifier
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.instance.id=$(POD_NAME)
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4318
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
           envFrom:
             - secretRef:
                 name: slacknotifier-secrets
@@ -156,3 +179,24 @@ Set `"GmailStrategy": "BrowserAuthentication"` in `appsettings.json` to use this
 dotnet build
 dotnet run
 ```
+
+---
+
+## Troubleshooting
+
+### Finding where exceptions are thrown
+
+`FirstChanceExceptionLogger` writes every thrown exception of selected types to standard error, including exceptions caught inside libraries, together with the stack at the throw. It is disabled by default.
+
+Enable it with an environment variable, for example in the Deployment:
+```yaml
+- name: Diagnostics__FirstChanceExceptions__Enabled
+  value: "true"
+```
+
+The types to log are set in `Diagnostics:FirstChanceExceptions:ExceptionTypes` in `appsettings.Production.json` (exact full type names). `*` logs every type and an empty list logs nothing. Read the output with:
+```bash
+kubectl logs deployment/slacknotifier -n slacknotifier
+```
+
+Turn it off again when done, since every logged exception includes a full stack trace.
