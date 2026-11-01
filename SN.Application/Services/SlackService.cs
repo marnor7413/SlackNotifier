@@ -227,12 +227,12 @@ public class SlackService : ISlackService
                 if(!files.ContainsKey(item.FileName))
                 {
                     files.Add(item.FileName, slackGetUploadUrlResponse.FileId);
-                    uploadedBytes += fileBytes.Length; // metrics
+                    uploadedBytes += fileBytes.Length;
                 }
             }
             catch (Exception ex)
             {
-                metrics.SlackRequestThrew(ex); // metrics
+                metrics.SlackRequestThrew(ex);
                 logger.LogError(ex, $"---> An unknown error occured when trying to upload the file {item.FileName} to slack.");
 
                 return (false, files);
@@ -263,7 +263,7 @@ public class SlackService : ISlackService
         }
         catch (Exception ex)
         {
-            metrics.SlackRequestThrew(ex); // metrics
+            metrics.SlackRequestThrew(ex);
             foreach (var file in files)
             {
                 logger.LogError(null, null, $"---> An unknown error occured when trying to complete upload of the file {file.Value} to slack for message from {sender}");
@@ -287,7 +287,7 @@ public class SlackService : ISlackService
         }
     }
 
-    private void RecordCompleteUploadResult(string responseContent, int fileCount, long totalBytes) // metrics
+    private void RecordCompleteUploadResult(string responseContent, int fileCount, long totalBytes)
     {
         try
         {
