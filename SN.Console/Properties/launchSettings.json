@@ -3,7 +3,8 @@
     "SN.ConsoleApp": {
       "commandName": "Project",
       "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Development",
+        "Diagnostics__FirstChanceExceptions__Enabled": "true"
       }
     }
   }

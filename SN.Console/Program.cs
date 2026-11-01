@@ -6,10 +6,12 @@ using SN.Application.Builders;
 using SN.Application.Interfaces;
 using SN.Application.Services;
 using SN.ConsoleApp.Constants;
+using SN.ConsoleApp.Diagnostics;
 using SN.ConsoleApp.Extensions;
 using SN.ConsoleApp.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
+FirstChanceExceptionLogger.EnableIfConfigured(builder.Configuration);
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddUserSecrets<Program>();
